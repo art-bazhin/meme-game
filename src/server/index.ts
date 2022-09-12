@@ -9,5 +9,5 @@ const io = new Server({
 io.listen(3000);
 
 io.on('connect', () => {
-  console.log('connected');
+  console.log('connected--');
 });

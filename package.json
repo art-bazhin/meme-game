@@ -5,9 +5,9 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev:front": "parcel src/front/index.html --dist-dir ./static",
-    "dev:back": "nodemon",
-    "build:back": "npx tsc src/back/index.ts --outDir server",
+    "dev:client": "parcel src/client/index.html --dist-dir ./static",
+    "dev:server": "nodemon",
+    "build:server": "npx tsc src/server/index.ts --outDir ./",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Art Bazhin",
