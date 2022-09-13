@@ -5,9 +5,9 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev:client": "parcel src/client/index.html --dist-dir ./static",
+    "dev:client": "parcel src/client/index.html --dist-dir ./dist/static",
     "dev:server": "nodemon",
-    "build:server": "npx tsc src/server/index.ts --outDir ./",
+    "build:server": "npx tsc src/server/index.ts --outDir ./dist",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Art Bazhin",
@@ -21,7 +21,9 @@
     "typescript": "^4.8.3"
   },
   "dependencies": {
+    "nanoid": "^4.0.0",
     "socket.io": "^4.5.2",
-    "socket.io-client": "^4.5.2"
+    "socket.io-client": "^4.5.2",
+    "spred": "^0.27.1"
   }
 }

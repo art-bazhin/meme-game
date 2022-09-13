@@ -1,7 +1,6 @@
 .DS_Store
 .rpt2_cache
 node_modules
-dist
 sandbox
 perf
 coverage

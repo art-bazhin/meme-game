@@ -142,14 +142,14 @@
       this[globalName] = mainExports;
     }
   }
-})({"aDMz0":[function(require,module,exports) {
+})({"47WRQ":[function(require,module,exports) {
 "use strict";
 var global = arguments[3];
 var HMR_HOST = null;
 var HMR_PORT = null;
 var HMR_SECURE = false;
 var HMR_ENV_HASH = "d6ea1d42532a7575";
-module.bundle.HMR_BUNDLE_ID = "05c7e0a5522e0168";
+module.bundle.HMR_BUNDLE_ID = "6ea89786e4c659bf";
 /* global HMR_HOST, HMR_PORT, HMR_ENV_HASH, HMR_SECURE, chrome, browser, globalThis, __parcel__import__, __parcel__importScripts__, ServiceWorkerGlobalScope */ /*::
 import type {
   HMRAsset,
@@ -531,16 +531,47 @@ function hmrAcceptRun(bundle, id) {
     acceptedAssets[id] = true;
 }
 
-},{}],"gqxgB":[function(require,module,exports) {
+},{}],"3kePc":[function(require,module,exports) {
 var _socketIoClient = require("socket.io-client");
-const socket = (0, _socketIoClient.io)("ws://localhost:3000", {
-    reconnectionDelayMax: 10000
-});
-socket.on("connect", ()=>{
-    console.log("qwe");
-});
+var _action = require("../common/action");
+// socket.on('connect', () => {
+//   socket.emit(Action.HostRoom, nanoid());
+// });
+// socket.on(Action.UpdateRoom, (payload) => console.log(payload));
+const hash = location.hash;
+const isHost = hash.indexOf("#host") === 0;
+const isPlay = hash.indexOf("#play") === 0;
+const roomId = hash.substring(5);
+function host(roomId) {
+    const socket = (0, _socketIoClient.io)("ws://localhost:3000", {
+        reconnectionDelayMax: 10000,
+        query: {
+            type: "host",
+            roomId
+        }
+    });
+    socket.on((0, _action.Action).StateChange, (state)=>{
+        document.body.innerHTML = `<pre>${JSON.stringify(state, null, 2)}</pre>`;
+    });
+}
+function play(roomId, playerId, name) {
+    const socket = (0, _socketIoClient.io)("ws://localhost:3000", {
+        reconnectionDelayMax: 10000,
+        query: {
+            type: "play",
+            roomId,
+            playerId,
+            name
+        }
+    });
+    socket.on((0, _action.Action).StateChange, (state)=>console.log(state));
+}
+if (roomId) {
+    if (isHost) host(roomId);
+    if (isPlay) play(roomId, "test-id", "John Doe");
+}
 
-},{"socket.io-client":"8HBJR"}],"8HBJR":[function(require,module,exports) {
+},{"socket.io-client":"8HBJR","../common/action":"1JFEc"}],"8HBJR":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 /**
@@ -5155,6 +5186,15 @@ function Backoff(opts) {
     this.jitter = jitter;
 };
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["aDMz0","gqxgB"], "gqxgB", "parcelRequirecd33")
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"1JFEc":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "Action", ()=>Action);
+let Action;
+(function(Action) {
+    Action["StateChange"] = "STATE_CHANGE";
+})(Action || (Action = {}));
 
-//# sourceMappingURL=index.522e0168.js.map
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["47WRQ","3kePc"], "3kePc", "parcelRequirecd33")
+
+//# sourceMappingURL=index.e4c659bf.js.map
