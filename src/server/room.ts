@@ -2,6 +2,7 @@ import { Server, Socket } from 'socket.io';
 import { Action } from '../common/action.js';
 import { Answer } from '../common/answer';
 import { Player } from '../common/player';
+import { PlayerStatus } from '../common/player-status.js';
 import { RoomError } from '../common/room-error.js';
 import { RoomState } from '../common/room-state';
 import { Stage } from '../common/stage';
@@ -12,6 +13,7 @@ import { shuffleCopy } from './utils.js';
 const ROOM_EXPIRED_TIME = 30 * 60 * 1000;
 const CARDS_PER_PLAYER = 5;
 const WAIT_FOR_OFFLINE_TIME = 30 * 1000;
+const MIN_PLAYERS = 2;
 
 export class Room {
   static rooms: Record<string, Room> = {};
@@ -37,7 +39,7 @@ export class Room {
   private cards: string[] = [];
   private maxRounds = 0;
   private expiredTimeout: NodeJS.Timeout | undefined;
-  private waitForOfflineTimer: NodeJS.Timer | undefined;
+  private waitForPendingTimer: NodeJS.Timer | undefined;
 
   private stage: Stage = 'LOBBY';
   private answers: Answer[] = [];
@@ -52,12 +54,26 @@ export class Room {
     return Object.keys(this.players);
   }
 
-  private get onlinePlayers() {
-    return this.playerIds.reduce<Player[]>((onlinePlayers, id) => {
+  private getPlayers(...statuses: PlayerStatus[]): Player[];
+  private getPlayers(): Player[];
+  private getPlayers(...statuses: any): Player[] {
+    return this.playerIds.reduce<Player[]>((playerList, id) => {
       const player = this.players[id];
-      if (player.online) onlinePlayers.push(player);
-      return onlinePlayers;
+
+      if (!statuses.length || statuses.includes(player.status)) {
+        playerList.push(player);
+      }
+
+      return playerList;
     }, []);
+  }
+
+  private get onlinePlayers() {
+    return this.getPlayers(PlayerStatus.Online);
+  }
+
+  private get pendingPlayers() {
+    return this.getPlayers(PlayerStatus.Pending);
   }
 
   private get state(): RoomState {
@@ -82,14 +98,14 @@ export class Room {
     const player = this.players[playerId];
 
     if (player) {
-      player.online = true;
+      player.status = PlayerStatus.Online;
     } else {
       const newPlayer = {
         id: playerId,
         name,
         cards: [],
         score: 0,
-        online: true,
+        status: PlayerStatus.Online,
         done: false,
       };
 
@@ -98,10 +114,7 @@ export class Room {
       this.players[playerId] = newPlayer;
     }
 
-    this.wait = 0;
-    clearInterval(this.waitForOfflineTimer);
-
-    this.emit();
+    this.emitNext();
   }
 
   public disconnect(playerId: string) {
@@ -109,24 +122,16 @@ export class Room {
       delete this.players[playerId];
     } else {
       const player = this.players[playerId];
-      if (player) player.online = false;
+      if (player) player.status = PlayerStatus.Pending;
     }
 
-    if (this.stage === 'LOBBY') {
-      this.emit();
-      return;
-    }
-
-    if (this.onlinePlayers.every((player) => player.done)) {
-      this.waitForOfflinePlayers();
-    } else {
-      this.emit();
-    }
+    this.emitNext();
   }
 
   public emitError(error: RoomError, socket?: Socket) {
     const target = socket ? socket : this.io.to(this.id);
     target.emit(Action.RoomUpdate, error);
+    this.initExpiredTimeout();
   }
 
   public emit(socket?: Socket) {
@@ -136,7 +141,7 @@ export class Room {
   }
 
   public startGame(maxRounds = 0) {
-    const hasPlayers = this.onlinePlayers.length > 1;
+    const hasPlayers = this.getPlayers(PlayerStatus.Online).length > 1;
     const isLobbyStage = this.stage === 'LOBBY';
     const isFinalStage =
       this.stage === 'RESULTS' && this.round === this.maxRounds;
@@ -156,16 +161,19 @@ export class Room {
   }
 
   public goToNextStage() {
+    clearInterval(this.waitForPendingTimer);
+    this.wait = 0;
+
     const votesDone = this.answerIndex === this.answers.length - 1;
 
-    let nextStage = {
+    this.stage = {
       LOBBY: 'QUESTION',
       QUESTION: 'VOTE',
       VOTE: votesDone ? 'RESULTS' : 'VOTE',
       RESULTS: 'QUESTION',
     }[this.stage] as Stage;
 
-    switch (nextStage) {
+    switch (this.stage) {
       case 'QUESTION':
         const question = this.questions.shift()!;
 
@@ -203,19 +211,20 @@ export class Room {
         break;
     }
 
-    this.stage = nextStage;
-    this.wait = 0;
-
-    clearInterval(this.waitForOfflineTimer);
-
     const currentAnswer = this.answers[this.answerIndex];
 
     for (let id in this.players) {
-      this.players[id].done = !!(
+      const player = this.players[id];
+
+      player.done = !!(
         this.stage === 'VOTE' &&
         currentAnswer &&
         currentAnswer.playerId === id
       );
+
+      if (player.status === PlayerStatus.Pending) {
+        player.status = PlayerStatus.Offline;
+      }
     }
 
     this.emit();
@@ -258,13 +267,7 @@ export class Room {
     const player = this.players[playerId];
     if (player) player.done = true;
 
-    if (this.onlinePlayers.every((player) => player.done)) {
-      if (this.onlinePlayers.length === this.playerIds.length) {
-        this.goToNextStage();
-      } else {
-        this.waitForOfflinePlayers();
-      }
-    }
+    this.emitNext();
   }
 
   private initExpiredTimeout() {
@@ -287,18 +290,20 @@ export class Room {
 
   private close() {
     clearTimeout(this.expiredTimeout);
-    clearInterval(this.waitForOfflineTimer);
+    clearInterval(this.waitForPendingTimer);
     delete Room.rooms[this.id];
+    this.emitError(RoomError.Expired);
   }
 
-  private waitForOfflinePlayers() {
-    clearInterval(this.waitForOfflineTimer);
-    this.wait = WAIT_FOR_OFFLINE_TIME;
-    this.emit();
+  private waitForPendingPlayers() {
+    clearInterval(this.waitForPendingTimer);
 
     const interval = 1000;
 
-    this.waitForOfflineTimer = setInterval(() => {
+    this.wait = WAIT_FOR_OFFLINE_TIME;
+    this.emit();
+
+    this.waitForPendingTimer = setInterval(() => {
       this.wait -= interval;
 
       if (!this.wait) {
@@ -308,5 +313,30 @@ export class Room {
 
       this.emit();
     }, interval);
+  }
+
+  private emitNext() {
+    clearInterval(this.waitForPendingTimer);
+    this.wait = 0;
+
+    if (this.stage === 'LOBBY') {
+      this.emit();
+      return;
+    }
+
+    const { onlinePlayers, pendingPlayers } = this;
+
+    if (
+      onlinePlayers.length >= MIN_PLAYERS &&
+      onlinePlayers.every((player) => player.done)
+    ) {
+      if (!pendingPlayers.every((player) => player.done))
+        this.waitForPendingPlayers();
+      else this.goToNextStage();
+
+      return;
+    }
+
+    this.emit();
   }
 }
