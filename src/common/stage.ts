@@ -1,1 +1,1 @@
-export type Stage = 'LOBBY' | 'QUESTION' | 'VOTE' | 'RESULTS' | 'END';
+export type Stage = 'LOBBY' | 'QUESTION' | 'VOTE' | 'RESULTS';

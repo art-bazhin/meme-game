@@ -1,6 +1,7 @@
+import { Vote } from './vote';
+
 export interface Answer {
   playerId: string;
   card: string;
-  cardIndex: number;
-  votes: (number | null)[];
+  votes: Vote[];
 }

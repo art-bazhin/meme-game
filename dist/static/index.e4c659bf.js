@@ -533,45 +533,77 @@ function hmrAcceptRun(bundle, id) {
 
 },{}],"3kePc":[function(require,module,exports) {
 var _socketIoClient = require("socket.io-client");
+var _nanoid = require("nanoid");
 var _action = require("../common/action");
+var _spred = require("spred");
+const WS_URL = "ws://localhost:3000";
 // socket.on('connect', () => {
 //   socket.emit(Action.HostRoom, nanoid());
 // });
 // socket.on(Action.UpdateRoom, (payload) => console.log(payload));
-const hash = location.hash;
-const isHost = hash.indexOf("#host") === 0;
-const isPlay = hash.indexOf("#play") === 0;
-const roomId = hash.substring(5);
+const hash = location.hash.substring(1);
+const hashTuple = hash.split("/");
+const isHost = hashTuple[0] === "host";
+const isPlayer = hashTuple[0] === "player";
+const roomId = hashTuple[1];
+const USER_ID = localStorage.getItem("USER_ID") || (0, _nanoid.nanoid)();
+localStorage.setItem("USER_ID", USER_ID);
+class GameController {
+    constructor(type, roomId, playerId, playerName){
+        this.socket = (0, _socketIoClient.io)(WS_URL, {
+            reconnectionDelayMax: 10000,
+            query: {
+                type,
+                roomId,
+                playerId,
+                playerName
+            }
+        });
+        this.playerId = playerId || "";
+        const [state, setState] = (0, _spred.signal)(null);
+        this.state = state;
+        this.socket.on((0, _action.Action).StateChange, setState);
+    }
+}
+class HostController extends GameController {
+    constructor(roomId){
+        super("host", roomId);
+    }
+    startGame(maxRounds = 0) {
+        const state = this.state();
+        if (state && state.stage === "LOBBY") this.socket.emit((0, _action.Action).Start, maxRounds);
+    }
+}
+class PlayerController extends GameController {
+    constructor(roomId, playerId, playerName){
+        super("player", roomId, playerId, playerName);
+    }
+    answer(payload) {
+        const state = this.state();
+        if (!state || state.stage === "LOBBY") return;
+        this.socket.emit((0, _action.Action).Answer, payload);
+    }
+}
 function host(roomId) {
-    const socket = (0, _socketIoClient.io)("ws://localhost:3000", {
-        reconnectionDelayMax: 10000,
-        query: {
-            type: "host",
-            roomId
-        }
-    });
-    socket.on((0, _action.Action).StateChange, (state)=>{
+    const controller = new HostController(roomId);
+    window.controller = controller;
+    controller.state.subscribe((state)=>{
         document.body.innerHTML = `<pre>${JSON.stringify(state, null, 2)}</pre>`;
     });
 }
-function play(roomId, playerId, name) {
-    const socket = (0, _socketIoClient.io)("ws://localhost:3000", {
-        reconnectionDelayMax: 10000,
-        query: {
-            type: "play",
-            roomId,
-            playerId,
-            name
-        }
+function play(roomId, playerId, playerName) {
+    const controller = new PlayerController(roomId, playerId, playerName);
+    window.controller = controller;
+    controller.state.subscribe((state)=>{
+        document.body.innerHTML = `<pre>${JSON.stringify(state, null, 2)}</pre>`;
     });
-    socket.on((0, _action.Action).StateChange, (state)=>console.log(state));
 }
 if (roomId) {
     if (isHost) host(roomId);
-    if (isPlay) play(roomId, "test-id", "John Doe");
+    if (isPlayer) play(roomId, USER_ID, "John Doe");
 }
 
-},{"socket.io-client":"8HBJR","../common/action":"1JFEc"}],"8HBJR":[function(require,module,exports) {
+},{"socket.io-client":"8HBJR","../common/action":"1JFEc","spred":"7ewWT","nanoid":"2ifus"}],"8HBJR":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 /**
@@ -5193,8 +5225,862 @@ parcelHelpers.export(exports, "Action", ()=>Action);
 let Action;
 (function(Action) {
     Action["StateChange"] = "STATE_CHANGE";
+    Action["Start"] = "START";
+    Action["Answer"] = "ANSWER";
 })(Action || (Action = {}));
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["47WRQ","3kePc"], "3kePc", "parcelRequirecd33")
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"7ewWT":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "batch", ()=>batch);
+parcelHelpers.export(exports, "catcher", ()=>catcher);
+parcelHelpers.export(exports, "collect", ()=>collect);
+parcelHelpers.export(exports, "computed", ()=>computed);
+parcelHelpers.export(exports, "configure", ()=>configure);
+parcelHelpers.export(exports, "createLogger", ()=>createLogger);
+parcelHelpers.export(exports, "effect", ()=>effect);
+parcelHelpers.export(exports, "getValue", ()=>getValue);
+parcelHelpers.export(exports, "isSignal", ()=>isSignal);
+parcelHelpers.export(exports, "isStore", ()=>isStore);
+parcelHelpers.export(exports, "isWritableSignal", ()=>isWritableSignal);
+parcelHelpers.export(exports, "isolate", ()=>isolate);
+parcelHelpers.export(exports, "memo", ()=>memo);
+parcelHelpers.export(exports, "named", ()=>named);
+parcelHelpers.export(exports, "on", ()=>on);
+parcelHelpers.export(exports, "onActivate", ()=>onActivate);
+parcelHelpers.export(exports, "onDeactivate", ()=>onDeactivate);
+parcelHelpers.export(exports, "onException", ()=>onException);
+parcelHelpers.export(exports, "onNotifyEnd", ()=>onNotifyEnd);
+parcelHelpers.export(exports, "onNotifyStart", ()=>onNotifyStart);
+parcelHelpers.export(exports, "onUpdate", ()=>onUpdate);
+parcelHelpers.export(exports, "sampleValue", ()=>sampleValue);
+parcelHelpers.export(exports, "signal", ()=>signal);
+parcelHelpers.export(exports, "store", ()=>store);
+parcelHelpers.export(exports, "watch", ()=>watch);
+parcelHelpers.export(exports, "writable", ()=>writable);
+const NOOP_FN = ()=>{};
+const FALSE_STATUS = {
+    status: false
+};
+function createSignalState(value, compute) {
+    const parent = tracking || scope;
+    const state = {
+        value,
+        compute,
+        observers: new Set(),
+        dirtyCount: 0,
+        queueIndex: -1,
+        subsCount: 0,
+        oldDepsCount: 0,
+        isCached: FALSE_STATUS
+    };
+    if (compute) state.dependencies = new Set();
+    else state.nextValue = value;
+    if (parent) {
+        if (!parent.children) parent.children = [];
+        parent.children.push(state);
+    }
+    return state;
+}
+function freeze(state) {
+    delete state.compute;
+    delete state.observers;
+    delete state.dependencies;
+    delete state.dirtyCount;
+    delete state.isCached;
+    delete state.queueIndex;
+    delete state.oldDepsCount;
+    delete state.hasException;
+    delete state.subsCount;
+    delete state.isComputing;
+}
+const DEFAULT_CONFIG = {
+    logException: /* istanbul ignore next */ (e)=>console.error(e),
+    _log: NOOP_FN
+};
+const config = Object.assign({}, DEFAULT_CONFIG);
+function configure(configUpdate) {
+    Object.assign(config, configUpdate || DEFAULT_CONFIG);
+    if (!config.logger) config._log = NOOP_FN;
+    else config._log = config.logger;
+}
+const ERROR_NAME = "[SPRED ERROR]";
+class CircularDependencyError extends Error {
+    constructor(){
+        super();
+        this.name = ERROR_NAME;
+        this.message = "Circular dependency detected";
+    }
+}
+class StateTypeError extends Error {
+    constructor(){
+        super();
+        this.name = ERROR_NAME;
+        this.message = "State data must be a plain object or an array or a primitive";
+    }
+}
+let tracking = null;
+let scope = null;
+let batchLevel = 0;
+let calcLevel = 0;
+let queue = [];
+let queueLength = 0;
+let fullQueueLength = 0;
+let depth = 0;
+let cacheStatus = {
+    status: true
+};
+function isolate(fn, args) {
+    const prevCacheStatus = cacheStatus;
+    const prevDepth = depth;
+    const prevTracking = tracking;
+    const prevScope = scope;
+    let result;
+    if (tracking) scope = tracking;
+    tracking = null;
+    depth = 0;
+    if (args) result = fn(...args);
+    else result = fn();
+    cacheStatus = prevCacheStatus;
+    depth = prevDepth;
+    tracking = prevTracking;
+    scope = prevScope;
+    return result;
+}
+function collect(fn) {
+    const prevCacheStatus = cacheStatus;
+    const prevDepth = depth;
+    const prevTracking = tracking;
+    const prevScope = scope;
+    const fakeState = {};
+    scope = fakeState;
+    tracking = null;
+    depth = 0;
+    fn();
+    cacheStatus = prevCacheStatus;
+    depth = prevDepth;
+    tracking = prevTracking;
+    scope = prevScope;
+    return ()=>cleanupChildren(fakeState);
+}
+/**
+ * Commits all writable signal updates inside the passed function as a single transaction.
+ * @param fn The function with updates.
+ */ function batch(fn) {
+    batchLevel++;
+    fn();
+    batchLevel--;
+    recalc();
+}
+function update$1(state, value) {
+    if (arguments.length > 1) {
+        if (typeof value === "function") state.nextValue = value(state.nextValue);
+        else state.nextValue = value;
+    } else if (state.compute) state.dirtyCount++;
+    state.queueIndex = queueLength - fullQueueLength;
+    queueLength = queue.push(state);
+    recalc();
+    return state.nextValue;
+}
+function addSubscriber(signal, subscriber, exec) {
+    const state = signal._state;
+    if (state.observers && state.observers.has(subscriber)) return;
+    const value = getStateValue(state, true);
+    if (!state.observers) {
+        if (exec) subscriber(value, true);
+        return;
+    }
+    activateDependencies(state);
+    state.observers.add(subscriber);
+    state.subsCount++;
+    if (exec) isolate(()=>subscriber(value, true));
+}
+function removeSubscriber(signal, subscriber) {
+    const state = signal._state;
+    if (state.observers.delete(subscriber)) {
+        state.subsCount--;
+        deactivateDependencies(state);
+    }
+}
+function resetStateQueueParams(state) {
+    state.dirtyCount = 0;
+    state.queueIndex = -1;
+}
+function emitUpdateLifecycle(state, value) {
+    logHook(state, "UPDATE", value);
+    if (!state.onUpdate) return;
+    state.onUpdate({
+        value: value,
+        prevValue: state.value
+    });
+}
+/**
+ * Immediately calculates the updated values of the signals and notifies their subscribers.
+ */ function recalc() {
+    if (!queueLength || calcLevel || batchLevel) return;
+    const notificationQueue = [];
+    calcLevel++;
+    for(let i = 0; i < queueLength; i++){
+        const state = queue[i];
+        if (state.queueIndex !== i || !state.observers) continue;
+        state.hasException = false;
+        for (let dependant of state.observers){
+            if (typeof dependant === "function") continue;
+            dependant.queueIndex = queueLength;
+            dependant.dirtyCount++;
+            queueLength = queue.push(dependant);
+        }
+    }
+    fullQueueLength = queueLength;
+    for(let i1 = 0; i1 < fullQueueLength; i1++){
+        const state1 = queue[i1];
+        if (state1.queueIndex !== i1) continue;
+        if (!state1.compute) {
+            const value = state1.nextValue;
+            const shouldUpdate = value !== undefined;
+            if (shouldUpdate) {
+                emitUpdateLifecycle(state1, value);
+                state1.value = value;
+                notificationQueue.push(state1);
+            }
+            resetStateQueueParams(state1);
+            continue;
+        }
+        if (!state1.observers.size) {
+            resetStateQueueParams(state1);
+            continue;
+        }
+        if (state1.hasException) {
+            state1.dirtyCount = 0;
+            logHook(state1, "EXCEPTION");
+            if (state1.onException) state1.onException(state1.exception);
+            if (state1.subsCount) config.logException(state1.exception);
+        }
+        if (!state1.dirtyCount) {
+            decreaseDirtyCount(state1);
+            resetStateQueueParams(state1);
+            continue;
+        }
+        const value1 = calcComputed(state1, true);
+        if (value1 !== undefined) {
+            emitUpdateLifecycle(state1, value1);
+            state1.value = value1;
+            notificationQueue.push(state1);
+        } else decreaseDirtyCount(state1);
+        resetStateQueueParams(state1);
+    }
+    calcLevel--;
+    queue = queue.slice(fullQueueLength);
+    queueLength = queue.length;
+    fullQueueLength = queueLength;
+    notify(notificationQueue);
+    recalc();
+}
+function notify(notificationQueue) {
+    const wrapper = config._notificationWrapper;
+    batchLevel++;
+    isolate(()=>{
+        if (wrapper) wrapper(()=>{
+            for (let state of notificationQueue)runSubscribers(state);
+        });
+        else for (let state of notificationQueue)runSubscribers(state);
+    });
+    batchLevel--;
+}
+function decreaseDirtyCount(state) {
+    for (let dependant of state.observers){
+        if (typeof dependant === "function") continue;
+        if (state.hasException && dependant.isCatcher) continue;
+        dependant.dirtyCount--;
+        if (state.hasException && !dependant.hasException) {
+            dependant.hasException = true;
+            dependant.exception = state.exception;
+        }
+    }
+}
+function runSubscribers(state) {
+    let i = state.subsCount;
+    if (!i) return;
+    logHook(state, "NOTIFY_START");
+    if (state.onNotifyStart) state.onNotifyStart(state.value);
+    for (let subscriber of state.observers){
+        if (!i) break;
+        if (typeof subscriber !== "function") continue;
+        subscriber(state.value);
+        --i;
+    }
+    logHook(state, "NOTIFY_END");
+    if (state.onNotifyEnd) state.onNotifyEnd(state.value);
+}
+function getStateValue(state, notTrackDeps) {
+    if (state.isComputing || state.hasCycle) {
+        state.hasCycle = true;
+        config.logException(new CircularDependencyError());
+        return state.value;
+    }
+    if (state.compute && !state.observers.size && !state.isCached.status) {
+        const value = calcComputed(state, false, notTrackDeps);
+        if (value !== undefined) state.value = value;
+    }
+    if (tracking && !notTrackDeps && state.observers) {
+        if (state.hasException && !tracking.hasException && !tracking.isCatcher) {
+            tracking.exception = state.exception;
+            tracking.hasException = true;
+        }
+        const isNewDep = !tracking.dependencies.delete(state);
+        tracking.dependencies.add(state);
+        --tracking.oldDepsCount;
+        if (isNewDep) {
+            if (tracking.observers.size) {
+                activateDependencies(state);
+                state.observers.add(tracking);
+            }
+        }
+    }
+    if (state.compute && !state.dependencies.size) freeze(state);
+    return state.value;
+}
+function calcComputed(state, scheduled, logException) {
+    const prevTracking = tracking;
+    let value;
+    push(state);
+    try {
+        value = state.compute(state.value, scheduled);
+    } catch (e) {
+        state.exception = e;
+        state.hasException = true;
+    }
+    let i = state.oldDepsCount;
+    for (let dependency of state.dependencies){
+        if (i <= 0) break;
+        state.dependencies.delete(dependency);
+        dependency.observers.delete(state);
+        deactivateDependencies(dependency);
+        --i;
+    }
+    pop(prevTracking);
+    if (state.hasException) {
+        logHook(state, "EXCEPTION");
+        if (state.onException) state.onException(state.exception);
+        if (logException || state.subsCount || !state.observers.size && !tracking) config.logException(state.exception);
+    }
+    return value;
+}
+function activateDependencies(state) {
+    if (!state.observers || state.observers.size) return;
+    logHook(state, "ACTIVATE");
+    if (state.onActivate) state.onActivate(state.value);
+    if (!state.dependencies) return;
+    for (let dependency of state.dependencies){
+        activateDependencies(dependency);
+        dependency.observers.add(state);
+    }
+}
+function deactivateDependencies(state) {
+    if (!state.observers || state.observers.size) return;
+    logHook(state, "DEACTIVATE");
+    if (state.$d) state.$d(state.value);
+    if (state.onDeactivate) state.onDeactivate(state.value);
+    if (!state.dependencies) return;
+    for (let dependency of state.dependencies){
+        dependency.observers.delete(state);
+        deactivateDependencies(dependency);
+    }
+}
+function push(state) {
+    cleanupChildren(state);
+    if (!state.observers.size) {
+        if (!depth) cacheStatus = {
+            status: true
+        };
+        ++depth;
+    }
+    tracking = state;
+    tracking.isComputing = true;
+    tracking.isCached = FALSE_STATUS;
+    tracking.oldDepsCount = state.dependencies.size;
+    tracking.hasException = false;
+    return tracking;
+}
+function pop(state) {
+    tracking.isComputing = false;
+    tracking.isCached = cacheStatus;
+    if (depth) --depth;
+    if (!depth) cacheStatus.status = false;
+    tracking = state;
+    return tracking;
+}
+function cleanupChildren(state) {
+    if (state.children && state.children.length) {
+        for (let child of state.children)if (typeof child === "function") child();
+        else cleanupChildren(child);
+        state.children = [];
+    }
+}
+function logHook(state, hook, value) {
+    if (!state.name) return;
+    let payload = state.value;
+    if (hook === "EXCEPTION") payload = state.exception;
+    else if (hook === "UPDATE") payload = {
+        prevValue: state.value,
+        value
+    };
+    config._log(state.name, hook, payload);
+}
+const signalProto = {
+    get () {
+        return getStateValue(this._state);
+    },
+    subscribe (subscriber, exec = true) {
+        addSubscriber(this, subscriber, exec);
+        if (!this._state.observers) return NOOP_FN;
+        const unsub = ()=>removeSubscriber(this, subscriber);
+        const parent = tracking || scope;
+        if (parent) {
+            if (!parent.children) parent.children = [];
+            parent.children.push(unsub);
+        }
+        return unsub;
+    },
+    sample () {
+        return getStateValue(this._state, true);
+    }
+};
+const writableSignalProto = Object.assign(Object.assign({}, signalProto), {
+    set (value) {
+        return update$1(this._state, value);
+    },
+    notify () {
+        return update$1(this._state);
+    }
+});
+function writableSelf(value) {
+    if (!arguments.length) return getStateValue(this);
+    return update$1(this, value);
+}
+function writable(value) {
+    const state = createSignalState(value, undefined);
+    const writable = writableSelf.bind(state);
+    writable._state = state;
+    writable.constructor = writable;
+    writable.set = writableSignalProto.set;
+    writable.get = writableSignalProto.get;
+    writable.notify = writableSignalProto.notify;
+    writable.subscribe = writableSignalProto.subscribe;
+    writable.sample = writableSignalProto.sample;
+    return writable;
+}
+/**
+ * Sets the activate event listener. The event is emitted at the first subscription or at the first activation of a dependent signal.
+ * @param signal Target signal.
+ * @param listener Function that listens to the signal activation event.
+ */ function onActivate(signal, listener) {
+    signal._state.onActivate = listener;
+}
+/**
+ * Sets the deactivate event listener. The event is emitted when there are no subscribers or active dependent signals left.
+ * @param signal Target signal.
+ * @param listener Function that listens to the signal deactivation event.
+ */ function onDeactivate(signal, listener) {
+    signal._state.onDeactivate = listener;
+}
+/**
+ * Sets the update event listener. The event is emitted every time the signal value is updated.
+ * @param signal Target signal.
+ * @param listener Function that listens to the signal update event.
+ */ function onUpdate(signal, listener) {
+    signal._state.onUpdate = listener;
+}
+/**
+ * Sets the update exception handler. The event is emitted for every unhandled exception in the calculation of the signal value.
+ * @param signal Target signal.
+ * @param listener Function that listens to the signal exception event.
+ */ function onException(signal, listener) {
+    signal._state.onException = listener;
+}
+/**
+ * Sets the notify start event listener. The event is emitted before signal subscribers are notified.
+ * @param signal Target signal.
+ * @param listener Function that listens to the signal notification start event.
+ */ function onNotifyStart(signal, listener) {
+    signal._state.onNotifyStart = listener;
+}
+/**
+ * Sets the notify start event listener. The event is emitted after signal subscribers are notified.
+ * @param signal Target signal.
+ * @param listener Function that listens to the signal notification start event.
+ */ function onNotifyEnd(signal, listener) {
+    signal._state.onNotifyEnd = listener;
+}
+function isSignal(value) {
+    return value._state && value.get;
+}
+function isWritableSignal(value) {
+    return isSignal(value) && value.set;
+}
+function isStore(value) {
+    return isSignal(value) && value.update;
+}
+function getValue(value) {
+    return isSignal(value) ? value() : value;
+}
+function sampleValue(value) {
+    return isSignal(value) ? value.sample() : value;
+}
+function computedSelf() {
+    return getStateValue(this);
+}
+/**
+ * Creates a signal that automatically calculates its value from other signals.
+ * @param compute The function that calculates the signal value and returns it.
+ * @returns Computed signal.
+ */ function computed(compute) {
+    const getValue = isWritableSignal(compute) ? ()=>compute() : compute;
+    const state = createSignalState(undefined, getValue);
+    const computed = computedSelf.bind(state);
+    computed._state = state;
+    computed.constructor = computed;
+    computed.get = signalProto.get;
+    computed.subscribe = signalProto.subscribe;
+    computed.sample = signalProto.sample;
+    return computed;
+}
+/**
+ * Creates a computed signal that triggers its dependants and subscribers only if its value changes.
+ * @param compute The function that calculates the signal value and returns it.
+ * @param equals The function that checks if the new value is equal to the previous value. Defaults to Object.is.
+ * @returns Computed signal.
+ */ function memo(compute, equals) {
+    const check = equals || Object.is;
+    const getValue = isWritableSignal(compute) ? ()=>compute() : compute;
+    const comp = computed((prevValue, scheduled)=>{
+        const value = getValue(prevValue, scheduled);
+        if (prevValue === undefined || !check(value, prevValue)) return value;
+        return undefined;
+    });
+    return comp;
+}
+const STOP = {};
+const STORES_CACHE = {};
+let VALUES_CACHE = {};
+let counter = 1;
+function isPlainObject(obj) {
+    const proto = Object.getPrototypeOf(obj);
+    return proto && proto.constructor === Object;
+}
+function isArray(obj) {
+    return Array.isArray(obj);
+}
+function copy(obj) {
+    if (isArray(obj)) return obj.slice();
+    if (obj && typeof obj === "object") {
+        if (isPlainObject(obj)) return Object.assign({}, obj);
+        throw new StateTypeError();
+    }
+    return obj;
+}
+function getClone(id, state, value) {
+    const cached = VALUES_CACHE[id];
+    if (cached !== undefined) return cached;
+    return copy(arguments.length === 3 ? value : state.sample());
+}
+function clearValuesCache() {
+    VALUES_CACHE = {};
+}
+function update(arg1, arg2) {
+    let updateFn;
+    if (arguments.length === 2) {
+        updateChild(this, arg1, arg2);
+        return;
+    } else updateFn = arg1;
+    const setter = this._setter;
+    const id = this._id;
+    const key = this._key;
+    const parent = this._parent;
+    let value;
+    if (typeof updateFn !== "function") value = updateFn;
+    else {
+        const clone = getClone(id, this);
+        const next = updateFn(clone);
+        if (next === STOP) return;
+        value = next === undefined ? clone : next;
+    }
+    VALUES_CACHE[id] = value;
+    if (setter) {
+        setter(value);
+        return;
+    }
+    parent.update((parentValue)=>{
+        if (!parentValue) return STOP;
+        parentValue[key] = value;
+    });
+}
+function updateChild(self, key, arg) {
+    self.update((state)=>{
+        if (!state) return STOP;
+        const id = self._id + "." + key;
+        let value;
+        if (typeof arg !== "function") value = arg;
+        else {
+            const clone = getClone(id, undefined, state[key]);
+            const next = arg(clone);
+            value = next === undefined ? clone : next;
+        }
+        VALUES_CACHE[id] = value;
+        state[key] = value;
+    });
+}
+function select(key) {
+    const id = this._id + "." + key;
+    const cached = STORES_CACHE[id];
+    if (cached) return cached;
+    const store = memo(()=>{
+        const parentValue = this();
+        const value = parentValue && parentValue[key];
+        if (value === undefined) return null;
+        return value;
+    });
+    store._id = id;
+    store._key = key;
+    store._parent = this;
+    store.select = select;
+    store.update = update;
+    STORES_CACHE[id] = store;
+    store._state.$d = ()=>delete STORES_CACHE[id];
+    return store;
+}
+function store(initialState) {
+    const id = "store" + counter++;
+    const setter = writable(initialState);
+    const store = memo(setter);
+    store._setter = setter;
+    store._id = id;
+    store.select = select;
+    store.update = update;
+    onUpdate(setter, clearValuesCache);
+    return store;
+}
+/**
+ * Calls the passed function immediately and every time the signals it depends on are updated.
+ * @param fn A function to watch for.
+ * @returns Stop watching function.
+ */ function watch(fn) {
+    const comp = isSignal(fn) ? fn : computed(fn);
+    return comp.subscribe(NOOP_FN);
+}
+/**
+ * Creates a tuple of signal and setter function
+ * @param initialValue
+ * @returns A tuple of signal and setter function
+ */ function signal(initialValue) {
+    const source = writable(initialValue);
+    const signal = computed(source);
+    function set(payload) {
+        if (!arguments.length) return source({});
+        return source(payload);
+    }
+    return [
+        signal,
+        set
+    ];
+}
+/**
+ * Subscribes the function to updates of the signal value.
+ * @param signal Signal.
+ * @param subscriber Function that listens to the signal updates.
+ * @returns Unsubscribe function.
+ */ function on(signal, subscriber) {
+    return signal.subscribe(subscriber, false);
+}
+function named(signal, name) {
+    signal._state.name = name;
+    return signal;
+}
+/**
+ * Creates an effect from asynchronous function.
+ * @param asyncFn Asynchronous function
+ * @returns Effect.
+ */ function effect(asyncFn, name) {
+    let counter = 0;
+    let current = -1;
+    const _status = writable("pristine");
+    const _exception = writable();
+    const _data = writable();
+    const _aborted = writable();
+    const _args = writable();
+    const lastStatus = memo(()=>{
+        const status = _status();
+        return status === "pending" ? undefined : status;
+    });
+    lastStatus.subscribe(NOOP_FN);
+    const status = memo(()=>{
+        const value = _status();
+        return {
+            value,
+            pristine: value === "pristine",
+            pending: value === "pending",
+            fulfilled: value === "fulfilled",
+            rejected: value === "rejected",
+            settled: value === "fulfilled" || value === "rejected"
+        };
+    }, (status, prevStatus)=>{
+        return status.value === prevStatus.value;
+    });
+    const exception = computed(_exception);
+    const done = computed(()=>{
+        const data = _data();
+        const exception = _exception();
+        switch(_status.sample()){
+            case "pristine":
+            case "fulfilled":
+                return data;
+            case "rejected":
+                return exception;
+        }
+    });
+    const data = computed(_data);
+    const aborted = computed(_aborted);
+    const args = computed(_args);
+    const abort = ()=>{
+        if (!status.sample().pending) return;
+        logEvent(name, "ABORT");
+        batch(()=>{
+            _status(lastStatus());
+            _aborted({});
+        });
+        counter++;
+    };
+    const reset = ()=>{
+        if (status.sample().pristine) return;
+        logEvent(name, "RESET");
+        batch(()=>{
+            if (status().pending) _aborted({});
+            _status("pristine");
+        });
+        counter++;
+    };
+    const exec = (id, ...args)=>{
+        return asyncFn(...args).then((res)=>{
+            current = id;
+            return res;
+        }).catch((e)=>{
+            current = id;
+            throw e;
+        });
+    };
+    const call = (...args)=>{
+        logEvent(name, "CALL", args);
+        if (_status.sample() === "pending") _aborted({});
+        _args(args);
+        _status("pending");
+        return exec(++counter, ...args).then((v)=>{
+            if (current !== counter) return v;
+            batch(()=>{
+                _data(v);
+                _status("fulfilled");
+            });
+            return v;
+        }).catch((e)=>{
+            if (current !== counter) throw e;
+            batch(()=>{
+                _exception(e);
+                _status("rejected");
+            });
+            throw e;
+        });
+    };
+    if (name) {
+        named(data, name + ".data");
+        named(exception, name + ".exception");
+        named(done, name + ".done");
+        named(aborted, name + ".aborted");
+        named(args, name + ".args");
+        named(status, name + ".status");
+    }
+    return {
+        data,
+        exception,
+        done,
+        aborted,
+        args,
+        status,
+        call,
+        abort,
+        reset
+    };
+}
+function logEvent(effectName, eventName, payload) {
+    if (!effectName) return;
+    config._log(effectName, eventName, payload);
+}
+/**
+ * Creates a computed signal that handles exceptions that occur during computations.
+ * @param compute The function that calculates the signal value and returns it.
+ * @param handle The function that handles an exception and returns the new signal value.
+ * @returns Computed signal.
+ */ function catcher(compute, handle) {
+    const getValue = isSignal(compute) ? compute : computed(compute);
+    const comp = computed((prevValue)=>{
+        const value = getValue();
+        const state = getValue._state;
+        if (state.hasException) return handle(state.exception, prevValue);
+        return value;
+    });
+    comp._state.isCatcher = true;
+    return comp;
+}
+function createLogger(opts) {
+    const include = opts && opts.include;
+    const exclude = opts && opts.exclude;
+    function log(unitName, ...rest) {
+        console.log(`%c[${unitName}]%c`, "font-weight: bold", "font-weight: normal", ...rest);
+    }
+    function createLogFn() {
+        return (unitName, ...rest)=>{
+            let shouldLog = true;
+            if (include) shouldLog = include.includes(rest[0]);
+            if (exclude) shouldLog = shouldLog && !exclude.includes(rest[0]);
+            if (shouldLog) log(unitName, ...rest);
+        };
+    }
+    return createLogFn();
+}
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"2ifus":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "urlAlphabet", ()=>(0, _indexJs.urlAlphabet));
+parcelHelpers.export(exports, "random", ()=>random);
+parcelHelpers.export(exports, "customRandom", ()=>customRandom);
+parcelHelpers.export(exports, "customAlphabet", ()=>customAlphabet);
+parcelHelpers.export(exports, "nanoid", ()=>nanoid);
+var _indexJs = require("./url-alphabet/index.js");
+let random = (bytes)=>crypto.getRandomValues(new Uint8Array(bytes));
+let customRandom = (alphabet, defaultSize, getRandom)=>{
+    let mask = (2 << Math.log(alphabet.length - 1) / Math.LN2) - 1;
+    let step = -~(1.6 * mask * defaultSize / alphabet.length);
+    return (size = defaultSize)=>{
+        let id = "";
+        while(true){
+            let bytes = getRandom(step);
+            let j = step;
+            while(j--){
+                id += alphabet[bytes[j] & mask] || "";
+                if (id.length === size) return id;
+            }
+        }
+    };
+};
+let customAlphabet = (alphabet, size = 21)=>customRandom(alphabet, size, random);
+let nanoid = (size = 21)=>crypto.getRandomValues(new Uint8Array(size)).reduce((id, byte)=>{
+        byte &= 63;
+        if (byte < 36) id += byte.toString(36);
+        else if (byte < 62) id += (byte - 26).toString(36).toUpperCase();
+        else if (byte > 62) id += "-";
+        else id += "_";
+        return id;
+    }, "");
+
+},{"./url-alphabet/index.js":false,"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["47WRQ","3kePc"], "3kePc", "parcelRequirecd33")
 
 //# sourceMappingURL=index.e4c659bf.js.map

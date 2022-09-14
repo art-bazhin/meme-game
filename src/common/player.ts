@@ -4,4 +4,5 @@ export interface Player {
   cards: string[];
   score: number;
   online: boolean;
+  done: boolean;
 }
