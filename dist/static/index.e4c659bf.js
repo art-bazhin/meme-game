@@ -562,7 +562,7 @@ class GameController {
         this.playerId = playerId || "";
         const [state, setState] = (0, _spred.signal)(null);
         this.state = state;
-        this.socket.on((0, _action.Action).StateChange, setState);
+        this.socket.on((0, _action.Action).RoomUpdate, setState);
     }
 }
 class HostController extends GameController {
@@ -5224,7 +5224,7 @@ parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "Action", ()=>Action);
 let Action;
 (function(Action) {
-    Action["StateChange"] = "STATE_CHANGE";
+    Action["RoomUpdate"] = "ROOM_UPDATE";
     Action["Start"] = "START";
     Action["Answer"] = "ANSWER";
 })(Action || (Action = {}));

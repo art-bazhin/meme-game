@@ -1,6 +1,7 @@
 import { Server } from 'socket.io';
 import { on } from 'spred';
 import { Action } from '../common/action.js';
+import { RoomError } from '../common/room-error.js';
 import { Room } from './room.js';
 
 const io = new Server({
@@ -27,7 +28,10 @@ io.on('connection', (socket) => {
   if (type === 'player') {
     const room = Room.get(roomId);
 
-    if (!room) return;
+    if (!room) {
+      socket.emit(Action.RoomUpdate, RoomError.NotFound);
+      return;
+    }
 
     socket.join(roomId);
     room.connect(playerId, playerName);

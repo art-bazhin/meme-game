@@ -44,7 +44,7 @@ class GameController {
     const [state, setState] = signal<RoomState | null>(null);
 
     this.state = state;
-    this.socket.on(Action.StateChange, setState);
+    this.socket.on(Action.RoomUpdate, setState);
   }
 }
 

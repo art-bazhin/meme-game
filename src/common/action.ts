@@ -1,5 +1,5 @@
 export enum Action {
-  StateChange = 'STATE_CHANGE',
+  RoomUpdate = 'ROOM_UPDATE',
   Start = 'START',
   Answer = 'ANSWER',
 }
