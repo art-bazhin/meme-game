@@ -1,5 +1,5 @@
 export enum Action {
   RoomUpdate = 'ROOM_UPDATE',
-  Start = 'START',
-  Answer = 'ANSWER',
+  StartGame = 'START_GAME',
+  PlayerData = 'PLAYER_DATA',
 }

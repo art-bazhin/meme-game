@@ -1,6 +1,7 @@
 import { Answer } from './answer';
 import { GameStage } from './game-stage.js';
 import { Player } from './player';
+import { RoomError } from './room-error';
 
 export interface RoomState {
   id: string;
@@ -12,4 +13,6 @@ export interface RoomState {
   round: number;
   maxRounds: number;
   wait: number;
+  error?: RoomError;
+  loading?: boolean;
 }

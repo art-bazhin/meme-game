@@ -130,7 +130,7 @@ export class Room {
 
   public emitError(error: RoomError, socket?: Socket) {
     const target = socket ? socket : this.io.to(this.id);
-    target.emit(Action.RoomUpdate, error);
+    target.emit(Action.RoomUpdate, { error });
     this.initExpiredTimeout();
   }
 
@@ -144,7 +144,9 @@ export class Room {
     const hasPlayers = this.getPlayers(PlayerStatus.Online).length > 1;
     const isLobbyStage = this.stage === GameStage.Lobby;
     const isFinalStage =
-      this.stage === GameStage.Results && this.round === this.maxRounds;
+      this.stage === GameStage.Results &&
+      this.maxRounds &&
+      this.maxRounds === this.round;
 
     if (hasPlayers && (isLobbyStage || isFinalStage)) {
       this.questions = shuffleCopy(QUESTIONS);
@@ -230,36 +232,50 @@ export class Room {
     this.emit();
   }
 
-  public addAnswer(playerId: string, payload: any) {
+  public receiveData(playerId: string, payload: any) {
     if (this.stage === GameStage.Lobby) return;
 
     switch (this.stage) {
-      case 'QUESTION':
-        const index = this.answers.findIndex((el) => el.playerId === playerId);
+      case GameStage.Question:
+        if (
+          typeof payload !== 'string' ||
+          !this.players[playerId]?.cards.includes(payload)
+        )
+          return;
 
-        if (index >= 0) this.answers[index].card = payload;
-        else
+        const playerAnswer = this.answers.find(
+          (answer) => answer.playerId === playerId
+        );
+
+        if (playerAnswer) {
+          playerAnswer.card = payload;
+        } else {
           this.answers.push({
             playerId,
             card: payload,
             votes: [],
           });
+        }
 
         break;
 
-      case 'VOTE':
+      case GameStage.Vote:
+        if (typeof payload !== 'number' || payload < 0 || payload > 2) return;
+
         const answer = this.answers[this.answerIndex];
 
-        if (answer.playerId === playerId) break;
+        if (answer.playerId === playerId) return;
 
         const vote = answer.votes.find((v) => v.playerId === playerId);
 
-        if (vote) vote.score = payload;
-        else
+        if (vote) {
+          vote.score = payload;
+        } else {
           answer.votes.push({
             playerId,
             score: payload,
           });
+        }
 
         break;
     }

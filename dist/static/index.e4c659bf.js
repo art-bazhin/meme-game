@@ -532,23 +532,187 @@ function hmrAcceptRun(bundle, id) {
 }
 
 },{}],"3kePc":[function(require,module,exports) {
-var _socketIoClient = require("socket.io-client");
 var _nanoid = require("nanoid");
-var _action = require("../common/action");
-var _spred = require("spred");
-const WS_URL = "ws://localhost:3000";
-// socket.on('connect', () => {
-//   socket.emit(Action.HostRoom, nanoid());
-// });
-// socket.on(Action.UpdateRoom, (payload) => console.log(payload));
+var _hostController = require("./model/host-controller");
+var _playerController = require("./model/player-controller");
 const hash = location.hash.substring(1);
 const hashTuple = hash.split("/");
 const isHost = hashTuple[0] === "host";
-const isPlayer = hashTuple[0] === "player";
+const isPlayer = hashTuple[0] === "play";
 const roomId = hashTuple[1];
 const USER_ID = localStorage.getItem("USER_ID") || (0, _nanoid.nanoid)();
 localStorage.setItem("USER_ID", USER_ID);
+function host(roomId) {
+    const controller = new (0, _hostController.HostController)(roomId);
+    window.controller = controller;
+    controller.state.subscribe((state)=>{
+        document.body.innerHTML = `<pre>${JSON.stringify(state, null, 2)}</pre>`;
+    });
+}
+function play(roomId, playerId, playerName) {
+    const controller = new (0, _playerController.PlayerController)(roomId, playerId, playerName);
+    window.controller = controller;
+    controller.state.subscribe((state)=>{
+        document.body.innerHTML = `<pre>${JSON.stringify(state, null, 2)}</pre>`;
+    });
+}
+if (roomId) {
+    if (isHost) host(roomId);
+    if (isPlayer) play(roomId, USER_ID, "John Doe");
+}
+
+},{"nanoid":"2ifus","./model/host-controller":"28P4X","./model/player-controller":"6YFso"}],"2ifus":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "urlAlphabet", ()=>(0, _indexJs.urlAlphabet));
+parcelHelpers.export(exports, "random", ()=>random);
+parcelHelpers.export(exports, "customRandom", ()=>customRandom);
+parcelHelpers.export(exports, "customAlphabet", ()=>customAlphabet);
+parcelHelpers.export(exports, "nanoid", ()=>nanoid);
+var _indexJs = require("./url-alphabet/index.js");
+let random = (bytes)=>crypto.getRandomValues(new Uint8Array(bytes));
+let customRandom = (alphabet, defaultSize, getRandom)=>{
+    let mask = (2 << Math.log(alphabet.length - 1) / Math.LN2) - 1;
+    let step = -~(1.6 * mask * defaultSize / alphabet.length);
+    return (size = defaultSize)=>{
+        let id = "";
+        while(true){
+            let bytes = getRandom(step);
+            let j = step;
+            while(j--){
+                id += alphabet[bytes[j] & mask] || "";
+                if (id.length === size) return id;
+            }
+        }
+    };
+};
+let customAlphabet = (alphabet, size = 21)=>customRandom(alphabet, size, random);
+let nanoid = (size = 21)=>crypto.getRandomValues(new Uint8Array(size)).reduce((id, byte)=>{
+        byte &= 63;
+        if (byte < 36) id += byte.toString(36);
+        else if (byte < 62) id += (byte - 26).toString(36).toUpperCase();
+        else if (byte > 62) id += "-";
+        else id += "_";
+        return id;
+    }, "");
+
+},{"./url-alphabet/index.js":false,"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"gkKU3":[function(require,module,exports) {
+exports.interopDefault = function(a) {
+    return a && a.__esModule ? a : {
+        default: a
+    };
+};
+exports.defineInteropFlag = function(a) {
+    Object.defineProperty(a, "__esModule", {
+        value: true
+    });
+};
+exports.exportAll = function(source, dest) {
+    Object.keys(source).forEach(function(key) {
+        if (key === "default" || key === "__esModule" || dest.hasOwnProperty(key)) return;
+        Object.defineProperty(dest, key, {
+            enumerable: true,
+            get: function() {
+                return source[key];
+            }
+        });
+    });
+    return dest;
+};
+exports.export = function(dest, destName, get) {
+    Object.defineProperty(dest, destName, {
+        enumerable: true,
+        get: get
+    });
+};
+
+},{}],"28P4X":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "HostController", ()=>HostController);
+var _spred = require("spred");
+var _action = require("../../common/action");
+var _clientType = require("../../common/client-type");
+var _gameStage = require("../../common/game-stage");
+var _gameController = require("./game-controller");
+class HostController extends (0, _gameController.GameController) {
+    question = (0, _spred.memo)(()=>this.state().question);
+    constructor(roomId){
+        super((0, _clientType.ClientType).Host, roomId);
+    }
+    startGame(maxRounds = 0) {
+        const state = this.state();
+        if (state && state.stage === (0, _gameStage.GameStage).Lobby) this.emit((0, _action.Action).StartGame, maxRounds);
+    }
+}
+
+},{"../../common/action":"1JFEc","../../common/client-type":"4iKJW","../../common/game-stage":"4owkS","./game-controller":"5xcef","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","spred":"7ewWT"}],"1JFEc":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "Action", ()=>Action);
+let Action;
+(function(Action) {
+    Action["RoomUpdate"] = "ROOM_UPDATE";
+    Action["StartGame"] = "START_GAME";
+    Action["PlayerData"] = "PLAYER_DATA";
+})(Action || (Action = {}));
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"4iKJW":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "ClientType", ()=>ClientType);
+let ClientType;
+(function(ClientType) {
+    ClientType["Host"] = "HOST";
+    ClientType["Player"] = "PLAYER";
+})(ClientType || (ClientType = {}));
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"4owkS":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "GameStage", ()=>GameStage);
+let GameStage;
+(function(GameStage) {
+    GameStage["Lobby"] = "LOBBY";
+    GameStage["Question"] = "QUESTION";
+    GameStage["Vote"] = "VOTE";
+    GameStage["Results"] = "RESULTS";
+})(GameStage || (GameStage = {}));
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"5xcef":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "GameController", ()=>GameController);
+var _socketIoClient = require("socket.io-client");
+var _spred = require("spred");
+var _action = require("../../common/action");
+const isLocalHost = location.origin === "http://localhost:1234";
+const WS_URL = isLocalHost ? "ws://localhost:3000" : "";
 class GameController {
+    _pending = (0, _spred.writable)(false);
+    pending = (0, _spred.memo)(this._pending);
+    _state = (0, _spred.store)({
+        loading: true
+    });
+    state = (0, _spred.computed)(this._state);
+    loading = (0, _spred.memo)(()=>this.state().loading);
+    stage = (0, _spred.memo)(()=>this.state().stage);
+    error = (0, _spred.memo)(()=>this.state().error);
+    voteCard = (0, _spred.memo)(()=>{
+        const state = this.state();
+        const currentAnswer = state.answers[state.answerIndex];
+        return currentAnswer ? currentAnswer.card : "";
+    });
+    playerList = (0, _spred.computed)(()=>{
+        const players = this.state().players;
+        const ids = Object.keys(players);
+        return ids.map((id)=>players[id]);
+    });
+    sortedPlayerList = (0, _spred.computed)(()=>{
+        const list = this.playerList().slice();
+        list.sort((a, b)=>a.score - b.score);
+        return list;
+    });
     constructor(type, roomId, playerId, playerName){
         this.socket = (0, _socketIoClient.io)(WS_URL, {
             reconnectionDelayMax: 10000,
@@ -560,50 +724,18 @@ class GameController {
             }
         });
         this.playerId = playerId || "";
-        const [state, setState] = (0, _spred.signal)(null);
-        this.state = state;
-        this.socket.on((0, _action.Action).RoomUpdate, setState);
+        this.socket.on((0, _action.Action).RoomUpdate, (state)=>{
+            this._state.update(state);
+            this._pending(false);
+        });
     }
-}
-class HostController extends GameController {
-    constructor(roomId){
-        super("host", roomId);
+    emit(action, payload) {
+        this._pending(true);
+        this.socket.emit(action, payload);
     }
-    startGame(maxRounds = 0) {
-        const state = this.state();
-        if (state && state.stage === "LOBBY") this.socket.emit((0, _action.Action).Start, maxRounds);
-    }
-}
-class PlayerController extends GameController {
-    constructor(roomId, playerId, playerName){
-        super("player", roomId, playerId, playerName);
-    }
-    answer(payload) {
-        const state = this.state();
-        if (!state || state.stage === "LOBBY") return;
-        this.socket.emit((0, _action.Action).Answer, payload);
-    }
-}
-function host(roomId) {
-    const controller = new HostController(roomId);
-    window.controller = controller;
-    controller.state.subscribe((state)=>{
-        document.body.innerHTML = `<pre>${JSON.stringify(state, null, 2)}</pre>`;
-    });
-}
-function play(roomId, playerId, playerName) {
-    const controller = new PlayerController(roomId, playerId, playerName);
-    window.controller = controller;
-    controller.state.subscribe((state)=>{
-        document.body.innerHTML = `<pre>${JSON.stringify(state, null, 2)}</pre>`;
-    });
-}
-if (roomId) {
-    if (isHost) host(roomId);
-    if (isPlayer) play(roomId, USER_ID, "John Doe");
 }
 
-},{"socket.io-client":"8HBJR","../common/action":"1JFEc","spred":"7ewWT","nanoid":"2ifus"}],"8HBJR":[function(require,module,exports) {
+},{"socket.io-client":"8HBJR","spred":"7ewWT","../../common/action":"1JFEc","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"8HBJR":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 /**
@@ -1753,37 +1885,7 @@ const ERROR_PACKET = {
     data: "parser error"
 };
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"gkKU3":[function(require,module,exports) {
-exports.interopDefault = function(a) {
-    return a && a.__esModule ? a : {
-        default: a
-    };
-};
-exports.defineInteropFlag = function(a) {
-    Object.defineProperty(a, "__esModule", {
-        value: true
-    });
-};
-exports.exportAll = function(source, dest) {
-    Object.keys(source).forEach(function(key) {
-        if (key === "default" || key === "__esModule" || dest.hasOwnProperty(key)) return;
-        Object.defineProperty(dest, key, {
-            enumerable: true,
-            get: function() {
-                return source[key];
-            }
-        });
-    });
-    return dest;
-};
-exports.export = function(dest, destName, get) {
-    Object.defineProperty(dest, destName, {
-        enumerable: true,
-        get: get
-    });
-};
-
-},{}],"k0BCP":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"k0BCP":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _commonsJs = require("./commons.js");
@@ -5218,17 +5320,6 @@ function Backoff(opts) {
     this.jitter = jitter;
 };
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"1JFEc":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "Action", ()=>Action);
-let Action;
-(function(Action) {
-    Action["RoomUpdate"] = "ROOM_UPDATE";
-    Action["Start"] = "START";
-    Action["Answer"] = "ANSWER";
-})(Action || (Action = {}));
-
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"7ewWT":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
@@ -6046,41 +6137,74 @@ function createLogger(opts) {
     return createLogFn();
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"2ifus":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"6YFso":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "urlAlphabet", ()=>(0, _indexJs.urlAlphabet));
-parcelHelpers.export(exports, "random", ()=>random);
-parcelHelpers.export(exports, "customRandom", ()=>customRandom);
-parcelHelpers.export(exports, "customAlphabet", ()=>customAlphabet);
-parcelHelpers.export(exports, "nanoid", ()=>nanoid);
-var _indexJs = require("./url-alphabet/index.js");
-let random = (bytes)=>crypto.getRandomValues(new Uint8Array(bytes));
-let customRandom = (alphabet, defaultSize, getRandom)=>{
-    let mask = (2 << Math.log(alphabet.length - 1) / Math.LN2) - 1;
-    let step = -~(1.6 * mask * defaultSize / alphabet.length);
-    return (size = defaultSize)=>{
-        let id = "";
-        while(true){
-            let bytes = getRandom(step);
-            let j = step;
-            while(j--){
-                id += alphabet[bytes[j] & mask] || "";
-                if (id.length === size) return id;
-            }
-        }
-    };
-};
-let customAlphabet = (alphabet, size = 21)=>customRandom(alphabet, size, random);
-let nanoid = (size = 21)=>crypto.getRandomValues(new Uint8Array(size)).reduce((id, byte)=>{
-        byte &= 63;
-        if (byte < 36) id += byte.toString(36);
-        else if (byte < 62) id += (byte - 26).toString(36).toUpperCase();
-        else if (byte > 62) id += "-";
-        else id += "_";
-        return id;
-    }, "");
+parcelHelpers.export(exports, "PlayerController", ()=>PlayerController);
+var _spred = require("spred");
+var _action = require("../../common/action");
+var _clientType = require("../../common/client-type");
+var _gameStage = require("../../common/game-stage");
+var _gameController = require("./game-controller");
+class PlayerController extends (0, _gameController.GameController) {
+    player = (0, _spred.memo)(()=>this.state().players[this.playerId]);
+    constructor(roomId, playerId, playerName){
+        super((0, _clientType.ClientType).Player, roomId, playerId, playerName);
+    }
+    answer(card) {
+        const state = this.state();
+        if (!state || state.error || state.stage !== (0, _gameStage.GameStage).Question || !this.player().cards.includes(card)) return;
+        (0, _spred.batch)(()=>{
+            const answerIndex = this.state().answers.findIndex((answer)=>answer.playerId === this.playerId);
+            this._state.select("answers").update((answers)=>{
+                const answer = {
+                    playerId: this.playerId,
+                    card,
+                    votes: []
+                };
+                if (answerIndex > -1) answers[answerIndex] = answer;
+                else answers.push(answer);
+            });
+            this.makePlayerDone();
+        });
+        this.emitPlayerData(card);
+    }
+    vote(score) {
+        const state = this.state();
+        if (!state || state.error || state.stage !== (0, _gameStage.GameStage).Vote) return;
+        (0, _spred.batch)(()=>{
+            const answerIndex = this.state().answerIndex;
+            const answer = this.state().answers[answerIndex];
+            if (!answer || answer.playerId === this.playerId) return;
+            const voteIndex = answer.votes.findIndex((vote)=>vote.playerId === this.playerId);
+            this._state.select("answers").select(answerIndex).update("votes", (votes)=>{
+                const vote = {
+                    playerId: this.playerId,
+                    score
+                };
+                if (voteIndex > -1) votes[voteIndex] = vote;
+                else votes.push(vote);
+            });
+            this.makePlayerDone();
+        });
+        this.emitPlayerData(score);
+    }
+    ready() {
+        const state = this.state();
+        if (!state || state.error || state.stage !== (0, _gameStage.GameStage).Results) return;
+        this.makePlayerDone();
+        this.emitPlayerData();
+    }
+    emitPlayerData(payload) {
+        this.emit((0, _action.Action).PlayerData, payload);
+    }
+    makePlayerDone() {
+        this._state.select("players").update(this.playerId, (player)=>{
+            player.done = true;
+        });
+    }
+}
 
-},{"./url-alphabet/index.js":false,"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["47WRQ","3kePc"], "3kePc", "parcelRequirecd33")
+},{"../../common/action":"1JFEc","../../common/client-type":"4iKJW","../../common/game-stage":"4owkS","./game-controller":"5xcef","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","spred":"7ewWT"}]},["47WRQ","3kePc"], "3kePc", "parcelRequirecd33")
 
 //# sourceMappingURL=index.e4c659bf.js.map
