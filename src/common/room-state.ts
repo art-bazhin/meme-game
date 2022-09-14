@@ -7,7 +7,7 @@ export interface RoomState {
   id: string;
   stage: GameStage;
   players: Record<string, Player>;
-  question: string;
+  caption: string;
   answers: Answer[];
   answerIndex: number;
   round: number;

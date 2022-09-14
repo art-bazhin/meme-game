@@ -636,7 +636,7 @@ var _clientType = require("../../common/client-type");
 var _gameStage = require("../../common/game-stage");
 var _gameController = require("./game-controller");
 class HostController extends (0, _gameController.GameController) {
-    question = (0, _spred.memo)(()=>this.state().question);
+    caption = (0, _spred.memo)(()=>this.state().caption);
     constructor(roomId){
         super((0, _clientType.ClientType).Host, roomId);
     }

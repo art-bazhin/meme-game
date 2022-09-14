@@ -5,7 +5,7 @@ import { GameStage } from '../../common/game-stage';
 import { GameController } from './game-controller';
 
 export class HostController extends GameController {
-  public readonly question = memo(() => this.state().question);
+  public readonly caption = memo(() => this.state().caption);
 
   constructor(roomId: string) {
     super(ClientType.Host, roomId);

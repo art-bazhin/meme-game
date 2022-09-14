@@ -7,7 +7,7 @@ import { PlayerStatus } from '../common/player-status.js';
 import { RoomError } from '../common/room-error.js';
 import { RoomState } from '../common/room-state';
 import { CARDS } from './cards.js';
-import { Question, QUESTIONS } from './questions.js';
+import { Caption, CAPTIONS } from './captions.js';
 import { shuffleCopy } from './utils.js';
 
 const ROOM_EXPIRED_TIME = 30 * 60 * 1000;
@@ -35,7 +35,7 @@ export class Room {
     return Room.rooms[id];
   }
 
-  private questions: Question[] = [];
+  private questions: Caption[] = [];
   private cards: string[] = [];
   private maxRounds = 0;
   private expiredTimeout: NodeJS.Timeout | undefined;
@@ -84,7 +84,7 @@ export class Room {
       players: this.players,
       answers: this.answers,
       answerIndex: this.answerIndex,
-      question: this.question,
+      caption: this.question,
       round: this.round,
       wait: this.wait,
     };
@@ -149,7 +149,7 @@ export class Room {
       this.maxRounds === this.round;
 
     if (hasPlayers && (isLobbyStage || isFinalStage)) {
-      this.questions = shuffleCopy(QUESTIONS);
+      this.questions = shuffleCopy(CAPTIONS);
       this.cards = shuffleCopy(CARDS);
       this.maxRounds = maxRounds;
 

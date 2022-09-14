@@ -1,10 +1,10 @@
-export interface Question {
+export interface Caption {
   ru: string;
   en?: string;
   explicit?: boolean;
 }
 
-export const QUESTIONS: Question[] = [
+export const CAPTIONS: Caption[] = [
   {
     ru: 'Когда мяукнул коту, а он ответил',
   },
