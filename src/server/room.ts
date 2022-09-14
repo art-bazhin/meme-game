@@ -1,11 +1,11 @@
 import { Server, Socket } from 'socket.io';
 import { Action } from '../common/action.js';
 import { Answer } from '../common/answer';
+import { GameStage } from '../common/game-stage.js';
 import { Player } from '../common/player';
 import { PlayerStatus } from '../common/player-status.js';
 import { RoomError } from '../common/room-error.js';
 import { RoomState } from '../common/room-state';
-import { Stage } from '../common/stage';
 import { CARDS } from './cards.js';
 import { Question, QUESTIONS } from './questions.js';
 import { shuffleCopy } from './utils.js';
@@ -41,7 +41,7 @@ export class Room {
   private expiredTimeout: NodeJS.Timeout | undefined;
   private waitForPendingTimer: NodeJS.Timer | undefined;
 
-  private stage: Stage = 'LOBBY';
+  private stage: GameStage = GameStage.Lobby;
   private answers: Answer[] = [];
   private answerIndex = -1;
   private question = '';
@@ -109,7 +109,7 @@ export class Room {
         done: false,
       };
 
-      if (this.stage !== 'LOBBY') this.giveCards(newPlayer);
+      if (this.stage !== GameStage.Lobby) this.giveCards(newPlayer);
 
       this.players[playerId] = newPlayer;
     }
@@ -118,7 +118,7 @@ export class Room {
   }
 
   public disconnect(playerId: string) {
-    if (this.stage === 'LOBBY') {
+    if (this.stage === GameStage.Lobby) {
       delete this.players[playerId];
     } else {
       const player = this.players[playerId];
@@ -142,9 +142,9 @@ export class Room {
 
   public startGame(maxRounds = 0) {
     const hasPlayers = this.getPlayers(PlayerStatus.Online).length > 1;
-    const isLobbyStage = this.stage === 'LOBBY';
+    const isLobbyStage = this.stage === GameStage.Lobby;
     const isFinalStage =
-      this.stage === 'RESULTS' && this.round === this.maxRounds;
+      this.stage === GameStage.Results && this.round === this.maxRounds;
 
     if (hasPlayers && (isLobbyStage || isFinalStage)) {
       this.questions = shuffleCopy(QUESTIONS);
@@ -167,11 +167,11 @@ export class Room {
     const votesDone = this.answerIndex === this.answers.length - 1;
 
     this.stage = {
-      LOBBY: 'QUESTION',
-      QUESTION: 'VOTE',
-      VOTE: votesDone ? 'RESULTS' : 'VOTE',
-      RESULTS: 'QUESTION',
-    }[this.stage] as Stage;
+      [GameStage.Lobby]: GameStage.Question,
+      [GameStage.Question]: GameStage.Vote,
+      [GameStage.Vote]: votesDone ? GameStage.Results : GameStage.Vote,
+      [GameStage.Results]: GameStage.Question,
+    }[this.stage];
 
     switch (this.stage) {
       case 'QUESTION':
@@ -187,7 +187,7 @@ export class Room {
         this.answerIndex++;
         break;
 
-      case 'RESULTS':
+      case GameStage.Results:
         for (let answer of this.answers) {
           const { playerId, votes, card } = answer;
           const player = this.players[playerId];
@@ -231,7 +231,7 @@ export class Room {
   }
 
   public addAnswer(playerId: string, payload: any) {
-    if (this.stage === 'LOBBY') return;
+    if (this.stage === GameStage.Lobby) return;
 
     switch (this.stage) {
       case 'QUESTION':
@@ -319,7 +319,7 @@ export class Room {
     clearInterval(this.waitForPendingTimer);
     this.wait = 0;
 
-    if (this.stage === 'LOBBY') {
+    if (this.stage === GameStage.Lobby) {
       this.emit();
       return;
     }
