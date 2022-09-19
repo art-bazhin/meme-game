@@ -25,19 +25,19 @@
   }
 }
 
-.it9Olq_logo {
+._5cxt3G_logo {
   text-transform: uppercase;
   width: 300px;
   margin: 0;
 }
 
 @media ((min-width: 768px)) {
-  .it9Olq_logo {
+  ._5cxt3G_logo {
     width: 92vmin;
   }
 }
 
-.it9Olq_top {
+._5cxt3G_top {
   color: #634fa2;
   flex-direction: row;
   justify-content: space-between;
@@ -48,12 +48,12 @@
 }
 
 @media ((min-width: 768px)) {
-  .it9Olq_top {
+  ._5cxt3G_top {
     font-size: 15vmin;
   }
 }
 
-.it9Olq_bottom {
+._5cxt3G_bottom {
   color: #54808c;
   flex-direction: row;
   justify-content: space-between;
@@ -63,7 +63,7 @@
 }
 
 @media ((min-width: 768px)) {
-  .it9Olq_bottom {
+  ._5cxt3G_bottom {
     font-size: 35vmin;
   }
 }

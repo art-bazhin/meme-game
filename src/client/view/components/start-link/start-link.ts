@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid';
 import { component, h, templateFn } from 'spred-dom';
-import { buttonLink } from '../../ui/button/button';
+import { buttonLink } from 'client/view/ui/button/button';
 
 const StartLink = component(() => {
   const url = '#host/' + nanoid();
