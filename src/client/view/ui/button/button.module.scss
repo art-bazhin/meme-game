@@ -1,0 +1,23 @@
+@import '../../style/constants.scss';
+
+.button {
+  text-transform: uppercase;
+  background-color: $c-primary;
+  color: $c-background;
+  text-decoration: none;
+  cursor: pointer;
+  display: inline-block;
+  font-size: 24px;
+  padding: 9px 18px;
+  border-radius: 6px;
+
+  &:hover {
+    background-color: $c-primary-dark;
+  }
+
+  @media ($wide) {
+    font-size: 4vh;
+    padding: 1.5vh 3vh;
+    border-radius: 1vh;
+  }
+}

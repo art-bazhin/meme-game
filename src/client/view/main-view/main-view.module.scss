@@ -1,0 +1,25 @@
+@import '../style/constants.scss';
+
+.container {
+  height: 100vh;
+  display: flex;
+  text-align: center;
+  margin: 0 auto;
+  width: 80%;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  margin-top: -2vh;
+
+  @media ($wide) {
+    margin-top: 0;
+  }
+}
+
+.menu {
+  margin-top: 32px;
+
+  @media ($wide) {
+    margin-top: 8vh;
+  }
+}

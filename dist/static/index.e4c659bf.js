@@ -532,36 +532,1585 @@ function hmrAcceptRun(bundle, id) {
 }
 
 },{}],"3kePc":[function(require,module,exports) {
-var _nanoid = require("nanoid");
-var _hostController = require("./model/host-controller");
-var _playerController = require("./model/player-controller");
-const hash = location.hash.substring(1);
-const hashTuple = hash.split("/");
-const isHost = hashTuple[0] === "host";
-const isPlayer = hashTuple[0] === "play";
-const roomId = hashTuple[1];
-const USER_ID = localStorage.getItem("USER_ID") || (0, _nanoid.nanoid)();
-localStorage.setItem("USER_ID", USER_ID);
-function host(roomId) {
-    const controller = new (0, _hostController.HostController)(roomId);
-    window.controller = controller;
-    controller.state.subscribe((state)=>{
-        document.body.innerHTML = `<pre>${JSON.stringify(state, null, 2)}</pre>`;
+var _app = require("./view/app");
+document.body.innerHTML = "";
+document.body.appendChild((0, _app.App)());
+
+},{"./view/app":"dmiUC"}],"dmiUC":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "App", ()=>App);
+var _spredDom = require("spred-dom");
+var _routing = require("../model/routing");
+var _hostView = require("./host-view/host-view");
+var _mainView = require("./main-view/main-view");
+var _playerView = require("./player-view/player-view");
+const App = (0, _spredDom.component)(()=>{
+    return (0, _spredDom.h)(()=>{
+        (0, _spredDom.node)(()=>{
+            switch((0, _routing.route)()){
+                case "HOST":
+                    return (0, _hostView.HostView)();
+                case "PLAY":
+                    return (0, _playerView.PlayerView)();
+                default:
+                    return (0, _mainView.MainView)();
+            }
+        });
+    });
+});
+
+},{"spred-dom":"dR8Fz","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","../model/routing":"8aT8g","./main-view/main-view":"89w9c","./player-view/player-view":"hfveM","./host-view/host-view":"ckeGd"}],"dR8Fz":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "classes", ()=>classes);
+parcelHelpers.export(exports, "component", ()=>component);
+parcelHelpers.export(exports, "h", ()=>h);
+parcelHelpers.export(exports, "list", ()=>list);
+parcelHelpers.export(exports, "node", ()=>node);
+parcelHelpers.export(exports, "templateFn", ()=>templateFn);
+parcelHelpers.export(exports, "text", ()=>text);
+var _spred = require("spred");
+const creatingState = {
+    root: null,
+    isCreating: false,
+    path: "",
+    setupQueue: []
+};
+const traversalState = {
+    path: "",
+    i: 0,
+    node: null
+};
+const FIRST_CHILD = "F";
+const NEXT_SIBLING = "N";
+const PARENT_NODE = "P";
+const BINDING = "B";
+const START_CHILDREN = ">";
+const END_CHILDREN = "<";
+function next(fn) {
+    const current = traversalState.path[traversalState.i];
+    const nextValue = traversalState.path[++traversalState.i];
+    const goDeeper = nextValue === START_CHILDREN;
+    switch(current){
+        case FIRST_CHILD:
+            traversalState.node = traversalState.node.firstChild;
+            break;
+        case NEXT_SIBLING:
+            traversalState.node = traversalState.node.nextSibling;
+            break;
+        case PARENT_NODE:
+            traversalState.node = traversalState.node.parentNode;
+            next(fn);
+            break;
+    }
+    if (goDeeper && fn) {
+        ++traversalState.i;
+        fn();
+    }
+}
+function insertBefore(child, mark, parentNode) {
+    const parent = parentNode || mark.parentNode;
+    parent.insertBefore(child, mark);
+}
+function removeNodes(start, end, parentNode) {
+    const parent = parentNode || start.parentNode;
+    let current = start;
+    let next = null;
+    while(current && current !== end){
+        next = current.nextSibling;
+        parent.removeChild(current);
+        current = next;
+    }
+}
+function isFragment(node) {
+    return node.nodeType === Node.DOCUMENT_FRAGMENT_NODE;
+}
+function createMark() {
+    return document.createTextNode("");
+}
+function isMark(node) {
+    return node && node.nodeType === Node.TEXT_NODE && !node.textContent;
+}
+function setupSignalProp(node, key, signal) {
+    signal.subscribe((value)=>node[key] = value);
+}
+function setupAttr(node, key, value) {
+    if (typeof value === "function") {
+        setupSignalAttr(node, key, (0, _spred.isSignal)(value) ? value : (0, _spred.memo)(value));
+        return true;
+    }
+    if (creatingState.isCreating) setupBaseAttr(node, key, value);
+}
+function setupBaseAttr(node, key, value) {
+    if (value === true || value === "") value = "";
+    else if (!value) {
+        node.removeAttribute(key);
+        return;
+    }
+    node.setAttribute(key, value);
+}
+function setupSignalAttr(node, key, value) {
+    value.subscribe((v)=>setupBaseAttr(node, key, v));
+}
+function createBinding(cb) {
+    if (creatingState.isCreating) {
+        const mark = createMark();
+        creatingState.path += FIRST_CHILD + BINDING + PARENT_NODE;
+        creatingState.root.appendChild(mark);
+        cb(mark);
+        return;
+    }
+    next();
+    const mark1 = traversalState && traversalState.node;
+    cb(mark1);
+    next();
+}
+function node(binding) {
+    createBinding((mark)=>{
+        if (creatingState.isCreating) {
+            creatingState.setupQueue.push(()=>setupNode(binding, mark));
+            return;
+        }
+        setupNode(binding, mark);
     });
 }
-function play(roomId, playerId, playerName) {
-    const controller = new (0, _playerController.PlayerController)(roomId, playerId, playerName);
-    window.controller = controller;
-    controller.state.subscribe((state)=>{
-        document.body.innerHTML = `<pre>${JSON.stringify(state, null, 2)}</pre>`;
+function setupNode(binding, mark) {
+    if (!mark || !binding) return;
+    if (typeof binding === "function") {
+        if ((0, _spred.isSignal)(binding)) {
+            setupSignalNode(binding, mark);
+            return;
+        }
+        setupSignalNode((0, _spred.memo)(binding), mark);
+        return;
+    }
+    insertBefore(binding, mark);
+}
+function setupSignalNode(binding, mark) {
+    let start = mark.previousSibling;
+    if (!start) {
+        start = createMark();
+        insertBefore(start, mark);
+    }
+    binding.subscribe((node)=>{
+        removeNodes(start.nextSibling, mark);
+        if (node) insertBefore(node, mark);
     });
 }
-if (roomId) {
-    if (isHost) host(roomId);
-    if (isPlayer) play(roomId, USER_ID, "John Doe");
+function component(fn) {
+    let template = null;
+    let pathString = "";
+    return function(...args) {
+        if (!template) {
+            const prevSetupQueue = creatingState.setupQueue;
+            creatingState.setupQueue = [];
+            const data = createComponentData(fn, args);
+            pathString = data.pathString;
+            template = data.rootNode.cloneNode(true);
+            for (let fn1 of creatingState.setupQueue)fn1();
+            creatingState.setupQueue = prevSetupQueue;
+            return data.rootNode;
+        }
+        const rootNode = template.cloneNode(true);
+        setupComponent(fn, args, rootNode, pathString);
+        return rootNode;
+    };
+}
+function templateFn(component) {
+    return (...args)=>node(component(...args));
+}
+function setupComponent(fn, args, container, pathString) {
+    const prevIsCreating = creatingState.isCreating;
+    const prevPath = traversalState.path;
+    const prevIndex = traversalState.i;
+    const prevNode = traversalState.node;
+    creatingState.isCreating = false;
+    traversalState.path = pathString;
+    traversalState.i = 0;
+    traversalState.node = container;
+    (0, _spred.isolate)(fn, args);
+    creatingState.isCreating = prevIsCreating;
+    traversalState.path = prevPath;
+    traversalState.i = prevIndex;
+    traversalState.node = prevNode;
+}
+function createComponentData(fn, args) {
+    const prevPath = creatingState.path;
+    creatingState.path = "";
+    const prevRoot = creatingState.root;
+    let rootNode = document.createDocumentFragment();
+    creatingState.root = rootNode;
+    const prevIsCreating = creatingState.isCreating;
+    creatingState.isCreating = true;
+    (0, _spred.isolate)(fn, args);
+    let pathString = getPathString(creatingState.path);
+    creatingState.isCreating = prevIsCreating;
+    creatingState.path = prevPath;
+    creatingState.root = prevRoot;
+    if (rootNode.childNodes.length === 1 && !isMark(rootNode.firstChild)) {
+        rootNode = rootNode.firstChild;
+        if (pathString[0] === FIRST_CHILD) pathString = "_" + pathString.substring(1);
+    }
+    return {
+        rootNode,
+        pathString
+    };
+}
+const NEXT_SIBLING_REGEX = new RegExp(PARENT_NODE + FIRST_CHILD, "g");
+const EMPTY_NESTING_REGEX = new RegExp(`${START_CHILDREN}[^${BINDING}${START_CHILDREN}${END_CHILDREN}]*${END_CHILDREN}`, "g");
+const END_CHILDREN_REGEX = new RegExp(END_CHILDREN, "g");
+const EMPTY_TAIL = new RegExp(`[^${BINDING}]+$`, "g");
+const PARENT_NODE_REGEX = new RegExp(`${NEXT_SIBLING}+${PARENT_NODE}`, "g");
+function getPathString(str) {
+    str = str.replace(NEXT_SIBLING_REGEX, NEXT_SIBLING);
+    let prev = "";
+    while(prev !== str){
+        prev = str;
+        str = str.replace(EMPTY_NESTING_REGEX, "");
+    }
+    str = str.replace(EMPTY_TAIL, "").replace(END_CHILDREN_REGEX, "").replace(PARENT_NODE_REGEX, PARENT_NODE);
+    return str;
+}
+function classes() {
+    const result = fromArray(arguments);
+    if (typeof result === "function") return (0, _spred.memo)(result);
+    return result;
+}
+function fromObject(obj) {
+    let dynamic;
+    let result = "";
+    for(let key in obj){
+        const value = obj[key];
+        if (value) {
+            if (typeof value === "function") {
+                if (!dynamic) dynamic = [];
+                dynamic.push(key);
+                continue;
+            }
+            if (result) result += " ";
+            result += key;
+        }
+    }
+    if (dynamic) return ()=>{
+        let dynamicResult = result;
+        for (let key of dynamic){
+            const value = obj[key]();
+            if (!value) continue;
+            if (dynamicResult) dynamicResult += " ";
+            dynamicResult += key;
+        }
+        return dynamicResult;
+    };
+    return result || null;
+}
+function fromArray(arr) {
+    let result = "";
+    let dynamic;
+    for(let i = 0; i < arr.length; i++){
+        let item = arr[i];
+        if (!item) continue;
+        if (typeof item === "object") item = Array.isArray(item) ? fromArray(item) : fromObject(item);
+        if (item) {
+            const itemType = typeof item;
+            if (itemType === "function") {
+                if (!dynamic) dynamic = [];
+                dynamic.push(item);
+            } else if (itemType === "string") {
+                if (result) result += " ";
+                result += item;
+            }
+        }
+    }
+    if (dynamic) return ()=>{
+        let dynamicResult = result;
+        for (let fn of dynamic){
+            const add = fn();
+            if (add && typeof add === "string") {
+                if (dynamicResult) dynamicResult += " ";
+                dynamicResult += add;
+            }
+        }
+        return dynamicResult || null;
+    };
+    return result || null;
+}
+function spec(props, fn) {
+    if (!props || creatingState.isCreating && !creatingState.root) return;
+    let node;
+    let hasBindings = false;
+    if (creatingState.isCreating) node = creatingState.root;
+    else {
+        if (traversalState.path[traversalState.i] !== BINDING) return;
+        node = traversalState.node;
+        next(fn);
+    }
+    for(let key in props){
+        const reserved = RESERVED[key];
+        let value = props[key];
+        if (reserved) {
+            const result = reserved(node, value);
+            if (result) hasBindings = true;
+            continue;
+        }
+        key = ALIASES[key] || key;
+        if (typeof value === "function") {
+            hasBindings = true;
+            if (key[0] === "o" && key[1] === "n") {
+                node[key] = value;
+                continue;
+            }
+            setupSignalProp(node, key, (0, _spred.isSignal)(value) ? value : (0, _spred.memo)(value));
+            continue;
+        }
+        if (creatingState.isCreating) node[key] = value;
+    }
+    if (hasBindings && creatingState.isCreating) creatingState.path += BINDING;
+}
+const RESERVED = {
+    attrs (node, attrs) {
+        let hasBindings = false;
+        for(let key in attrs)hasBindings = setupAttr(node, key, attrs[key]) || hasBindings;
+        return hasBindings;
+    },
+    class (node, value) {
+        if (typeof value === "object") value = Array.isArray(value) ? fromArray(value) : fromObject(value);
+        return setupAttr(node, "class", value);
+    },
+    ref (node, cb) {
+        cb(node);
+        return true;
+    }
+};
+const ALIASES = {
+    text: "textContent"
+};
+const TEMPLATE_RESULT = {
+    // istanbul ignore next
+    get __INTERNAL__ () {
+        return "Dummy property used for correct type checking only";
+    }
+};
+function h(first, second, third) {
+    let props;
+    let fn;
+    let tag;
+    switch(arguments.length){
+        case 1:
+            if (typeof first === "function") fn = first;
+            else tag = first;
+            break;
+        case 2:
+            tag = first;
+            if (typeof second === "function") fn = second;
+            else props = second;
+            break;
+        case 3:
+            tag = first;
+            props = second;
+            fn = third;
+            break;
+    }
+    if (!tag) {
+        fn();
+        return TEMPLATE_RESULT;
+    }
+    if (creatingState.isCreating) {
+        const child = document.createElement(tag);
+        creatingState.root.appendChild(child);
+        creatingState.root = child;
+        creatingState.path += FIRST_CHILD;
+        spec(props);
+        if (fn) {
+            creatingState.path += START_CHILDREN;
+            fn();
+            creatingState.path += END_CHILDREN;
+        }
+        creatingState.path += PARENT_NODE;
+        creatingState.root = creatingState.root.parentNode;
+        return TEMPLATE_RESULT;
+    }
+    next(fn);
+    spec(props, fn);
+    return TEMPLATE_RESULT;
+}
+function text(data) {
+    let node;
+    if (creatingState.isCreating) {
+        node = document.createTextNode("_");
+        creatingState.root.appendChild(node);
+    } else {
+        next();
+        node = traversalState.node;
+    }
+    if (typeof data === "function") {
+        if (creatingState.isCreating) creatingState.path += FIRST_CHILD + BINDING + PARENT_NODE;
+        else next();
+        setupSignalProp(node, "textContent", (0, _spred.isSignal)(data) ? data : (0, _spred.memo)(data));
+        return;
+    }
+    if (creatingState.isCreating) {
+        creatingState.path += FIRST_CHILD + PARENT_NODE;
+        node.textContent = data;
+    }
+}
+function list(binding, mapFn) {
+    if (creatingState.isCreating && creatingState.root) {
+        const mark = createMark();
+        creatingState.path += FIRST_CHILD + BINDING + PARENT_NODE;
+        creatingState.setupQueue.push(()=>setupList(binding, mapFn, mark));
+        creatingState.root.appendChild(mark);
+        return;
+    }
+    next();
+    setupList(binding, mapFn, traversalState.node);
+    next();
+}
+function setupList(binding, mapFn, mark) {
+    if ((0, _spred.isSignal)(binding)) {
+        let start = mark.previousSibling;
+        if (!start) {
+            start = createMark();
+            insertBefore(start, mark);
+        }
+        let oldArr = [];
+        let nodeMap = new Map();
+        let cleanupMap = new Map();
+        // the algorithm is taken from
+        // https://github.com/localvoid/ivi/blob/2c81ead934b9128e092cc2a5ef2d3cabc73cb5dd/packages/ivi/src/vdom/implementation.ts#L1366
+        const arrSignal = (0, _spred.computed)(()=>{
+            const newArr = binding();
+            const parent = mark.parentNode;
+            let oldLength = oldArr.length;
+            let newLength = newArr.length;
+            if (!newLength && !oldLength) return;
+            const minLength = Math.min(oldLength, newLength);
+            let s = 0; // start index
+            let a = oldLength - 1; // old array end index
+            let b = newLength - 1; // new array end index
+            for(let i = 0; i < minLength; ++i){
+                let shouldStop = 0;
+                if (oldArr[s] === newArr[s]) ++s;
+                else ++shouldStop;
+                if (oldArr[a] === newArr[b]) --a, --b;
+                else ++shouldStop;
+                if (shouldStop === 2) break;
+            }
+            // lists are equal
+            if (a < 0 && b < 0) return;
+            // add nodes
+            if (s > a) {
+                const index = b + 1;
+                const endNode = index === newLength ? mark : nodeMap.get(newArr[index]);
+                while(s <= b){
+                    insertBefore(createListNode(newArr[s], mapFn, nodeMap, cleanupMap), endNode, parent);
+                    ++s;
+                }
+                oldArr = newArr;
+                return;
+            }
+            // remove nodes
+            if (s > b) {
+                const endIndex = a + 1;
+                const startNode = nodeMap.get(oldArr[s]);
+                const endNode1 = endIndex === oldLength ? mark : nodeMap.get(oldArr[endIndex]);
+                removeNodes(startNode, endNode1, parent);
+                while(s < endIndex){
+                    const el = oldArr[s++];
+                    cleanupMap.get(el)();
+                    cleanupMap.delete(el);
+                    nodeMap.delete(el);
+                }
+                oldArr = newArr;
+                return;
+            }
+            // reconcile
+            const positions = [];
+            const elementIndexMap = new Map();
+            let removedCount = 0;
+            let last = 0;
+            let moved = false;
+            oldLength = a + 1 - s;
+            newLength = b + 1 - s;
+            for(let i1 = 0; i1 < newLength; ++i1){
+                const index1 = s + i1;
+                positions[i1] = -1;
+                elementIndexMap.set(newArr[index1], index1);
+            }
+            for(let i2 = 0; i2 < oldLength; ++i2){
+                const oldIndex = s + i2;
+                const el1 = oldArr[oldIndex];
+                const newIndex = elementIndexMap.get(el1);
+                if (newIndex === undefined) {
+                    const node = nodeMap.get(el1);
+                    const end = (node.$lc || node).nextSibling;
+                    removeNodes(node, end, parent);
+                    cleanupMap.get(el1)();
+                    cleanupMap.delete(el1);
+                    nodeMap.delete(el1);
+                    removedCount++;
+                    continue;
+                }
+                positions[newIndex - s] = oldIndex;
+                if (!moved) {
+                    if (last > newIndex) moved = true;
+                    else last = newIndex;
+                }
+            }
+            if (moved) {
+                const lis = getLIS(positions);
+                for(let i3 = 0, j = lis.length - 1; i3 < newLength; ++i3){
+                    const position = positions[newLength - i3 - 1];
+                    const lisPosition = lis[j];
+                    if (position === lisPosition) {
+                        --j;
+                        continue;
+                    }
+                    const index2 = b - i3;
+                    const el2 = newArr[index2];
+                    const nextEl = newArr[index2 + 1];
+                    const nextNode = nextEl === undefined //
+                     ? mark : nodeMap.get(nextEl);
+                    if (position < 0) insertBefore(createListNode(el2, mapFn, nodeMap, cleanupMap), nextNode, parent);
+                    else {
+                        const node1 = nodeMap.get(el2);
+                        const lastChild = node1.$lc;
+                        if (lastChild && node1 !== lastChild) {
+                            let current = node1;
+                            let next;
+                            while(true){
+                                next = current.nextSibling;
+                                insertBefore(current, nextNode, parent);
+                                if (current === lastChild) break;
+                                current = next;
+                            }
+                        } else insertBefore(node1, nextNode, parent);
+                    }
+                }
+            } else if (oldLength - removedCount !== newLength) for(let i4 = 0; i4 < newLength; ++i4){
+                if (positions[newLength - i4 - 1] !== -1) continue;
+                const index3 = b - i4;
+                const el3 = newArr[index3];
+                const nextEl1 = newArr[index3 + 1];
+                const nextNode1 = nextEl1 === undefined //
+                 ? mark : nodeMap.get(nextEl1);
+                insertBefore(createListNode(el3, mapFn, nodeMap, cleanupMap), nextNode1, parent);
+            }
+            oldArr = newArr;
+        });
+        arrSignal.subscribe(NOOP);
+        (0, _spred.onDeactivate)(arrSignal, ()=>{
+            cleanupMap.forEach((cleanup)=>cleanup());
+            cleanupMap.clear();
+            nodeMap.clear();
+        });
+        return;
+    }
+    const parent = mark.parentNode;
+    for (let el of binding)insertBefore(mapFn(el), mark, parent);
+}
+function getLIS(arr) {
+    const arrLength = arr.length;
+    const endIndexes = [];
+    const predecessors = [];
+    let lisLength = 0;
+    for(let i = 0; i < arrLength; ++i){
+        const el = arr[i];
+        if (el < 0) continue;
+        let lo = 1;
+        let hi = lisLength + 1;
+        while(lo < hi){
+            const mid = lo + (0 | (hi - lo) / 2);
+            if (arr[endIndexes[mid]] > el) hi = mid;
+            else lo = mid + 1;
+        }
+        predecessors[i] = endIndexes[lo - 1];
+        endIndexes[lo] = i;
+        if (lo > lisLength) lisLength = lo;
+    }
+    const lis = [];
+    let i1 = lisLength;
+    let k = endIndexes[lisLength];
+    while(i1){
+        lis[--i1] = arr[k];
+        k = predecessors[k];
+    }
+    return lis;
+}
+function createListNode(el, mapFn, nodeMap, cleanupMap) {
+    let node;
+    const cleanup = (0, _spred.collect)(()=>{
+        node = mapFn(el);
+    });
+    let nodeInMap = node;
+    if (isFragment(node)) {
+        const firstChild = node.firstChild;
+        nodeInMap = createMark();
+        if (firstChild) node.insertBefore(nodeInMap, firstChild);
+        else node.appendChild(nodeInMap);
+        nodeInMap.$lc = node.lastChild;
+    }
+    nodeMap.set(el, nodeInMap);
+    cleanupMap.set(el, cleanup);
+    return node;
+}
+const NOOP = ()=>{};
+
+},{"spred":"7ewWT","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"7ewWT":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "batch", ()=>batch);
+parcelHelpers.export(exports, "catcher", ()=>catcher);
+parcelHelpers.export(exports, "collect", ()=>collect);
+parcelHelpers.export(exports, "computed", ()=>computed);
+parcelHelpers.export(exports, "configure", ()=>configure);
+parcelHelpers.export(exports, "createLogger", ()=>createLogger);
+parcelHelpers.export(exports, "effect", ()=>effect);
+parcelHelpers.export(exports, "getValue", ()=>getValue);
+parcelHelpers.export(exports, "isSignal", ()=>isSignal);
+parcelHelpers.export(exports, "isStore", ()=>isStore);
+parcelHelpers.export(exports, "isWritableSignal", ()=>isWritableSignal);
+parcelHelpers.export(exports, "isolate", ()=>isolate);
+parcelHelpers.export(exports, "memo", ()=>memo);
+parcelHelpers.export(exports, "named", ()=>named);
+parcelHelpers.export(exports, "on", ()=>on);
+parcelHelpers.export(exports, "onActivate", ()=>onActivate);
+parcelHelpers.export(exports, "onDeactivate", ()=>onDeactivate);
+parcelHelpers.export(exports, "onException", ()=>onException);
+parcelHelpers.export(exports, "onNotifyEnd", ()=>onNotifyEnd);
+parcelHelpers.export(exports, "onNotifyStart", ()=>onNotifyStart);
+parcelHelpers.export(exports, "onUpdate", ()=>onUpdate);
+parcelHelpers.export(exports, "sampleValue", ()=>sampleValue);
+parcelHelpers.export(exports, "signal", ()=>signal);
+parcelHelpers.export(exports, "store", ()=>store);
+parcelHelpers.export(exports, "watch", ()=>watch);
+parcelHelpers.export(exports, "writable", ()=>writable);
+const NOOP_FN = ()=>{};
+const FALSE_STATUS = {
+    status: false
+};
+function createSignalState(value, compute) {
+    const parent = tracking || scope;
+    const state = {
+        value,
+        compute,
+        observers: new Set(),
+        dirtyCount: 0,
+        queueIndex: -1,
+        subsCount: 0,
+        oldDepsCount: 0,
+        isCached: FALSE_STATUS
+    };
+    if (compute) state.dependencies = new Set();
+    else state.nextValue = value;
+    if (parent) {
+        if (!parent.children) parent.children = [];
+        parent.children.push(state);
+    }
+    return state;
+}
+function freeze(state) {
+    delete state.compute;
+    delete state.observers;
+    delete state.dependencies;
+    delete state.dirtyCount;
+    delete state.isCached;
+    delete state.queueIndex;
+    delete state.oldDepsCount;
+    delete state.hasException;
+    delete state.subsCount;
+    delete state.isComputing;
+}
+const DEFAULT_CONFIG = {
+    logException: /* istanbul ignore next */ (e)=>console.error(e),
+    _log: NOOP_FN
+};
+const config = Object.assign({}, DEFAULT_CONFIG);
+function configure(configUpdate) {
+    Object.assign(config, configUpdate || DEFAULT_CONFIG);
+    if (!config.logger) config._log = NOOP_FN;
+    else config._log = config.logger;
+}
+const ERROR_NAME = "[SPRED ERROR]";
+class CircularDependencyError extends Error {
+    constructor(){
+        super();
+        this.name = ERROR_NAME;
+        this.message = "Circular dependency detected";
+    }
+}
+class StateTypeError extends Error {
+    constructor(){
+        super();
+        this.name = ERROR_NAME;
+        this.message = "State data must be a plain object or an array or a primitive";
+    }
+}
+let tracking = null;
+let scope = null;
+let batchLevel = 0;
+let calcLevel = 0;
+let queue = [];
+let queueLength = 0;
+let fullQueueLength = 0;
+let depth = 0;
+let cacheStatus = {
+    status: true
+};
+function isolate(fn, args) {
+    const prevCacheStatus = cacheStatus;
+    const prevDepth = depth;
+    const prevTracking = tracking;
+    const prevScope = scope;
+    let result;
+    if (tracking) scope = tracking;
+    tracking = null;
+    depth = 0;
+    if (args) result = fn(...args);
+    else result = fn();
+    cacheStatus = prevCacheStatus;
+    depth = prevDepth;
+    tracking = prevTracking;
+    scope = prevScope;
+    return result;
+}
+function collect(fn) {
+    const prevCacheStatus = cacheStatus;
+    const prevDepth = depth;
+    const prevTracking = tracking;
+    const prevScope = scope;
+    const fakeState = {};
+    scope = fakeState;
+    tracking = null;
+    depth = 0;
+    fn();
+    cacheStatus = prevCacheStatus;
+    depth = prevDepth;
+    tracking = prevTracking;
+    scope = prevScope;
+    return ()=>cleanupChildren(fakeState);
+}
+/**
+ * Commits all writable signal updates inside the passed function as a single transaction.
+ * @param fn The function with updates.
+ */ function batch(fn) {
+    batchLevel++;
+    fn();
+    batchLevel--;
+    recalc();
+}
+function update$1(state, value) {
+    if (arguments.length > 1) {
+        if (typeof value === "function") state.nextValue = value(state.nextValue);
+        else state.nextValue = value;
+    } else if (state.compute) state.dirtyCount++;
+    state.queueIndex = queueLength - fullQueueLength;
+    queueLength = queue.push(state);
+    recalc();
+    return state.nextValue;
+}
+function addSubscriber(signal, subscriber, exec) {
+    const state = signal._state;
+    if (state.observers && state.observers.has(subscriber)) return;
+    const value = getStateValue(state, true);
+    if (!state.observers) {
+        if (exec) subscriber(value, true);
+        return;
+    }
+    activateDependencies(state);
+    state.observers.add(subscriber);
+    state.subsCount++;
+    if (exec) isolate(()=>subscriber(value, true));
+}
+function removeSubscriber(signal, subscriber) {
+    const state = signal._state;
+    if (state.observers.delete(subscriber)) {
+        state.subsCount--;
+        deactivateDependencies(state);
+    }
+}
+function resetStateQueueParams(state) {
+    state.dirtyCount = 0;
+    state.queueIndex = -1;
+}
+function emitUpdateLifecycle(state, value) {
+    logHook(state, "UPDATE", value);
+    if (!state.onUpdate) return;
+    state.onUpdate({
+        value: value,
+        prevValue: state.value
+    });
+}
+/**
+ * Immediately calculates the updated values of the signals and notifies their subscribers.
+ */ function recalc() {
+    if (!queueLength || calcLevel || batchLevel) return;
+    const notificationQueue = [];
+    calcLevel++;
+    for(let i = 0; i < queueLength; i++){
+        const state = queue[i];
+        if (state.queueIndex !== i || !state.observers) continue;
+        state.hasException = false;
+        for (let dependant of state.observers){
+            if (typeof dependant === "function") continue;
+            dependant.queueIndex = queueLength;
+            dependant.dirtyCount++;
+            queueLength = queue.push(dependant);
+        }
+    }
+    fullQueueLength = queueLength;
+    for(let i1 = 0; i1 < fullQueueLength; i1++){
+        const state1 = queue[i1];
+        if (state1.queueIndex !== i1) continue;
+        if (!state1.compute) {
+            const value = state1.nextValue;
+            const shouldUpdate = value !== undefined;
+            if (shouldUpdate) {
+                emitUpdateLifecycle(state1, value);
+                state1.value = value;
+                notificationQueue.push(state1);
+            }
+            resetStateQueueParams(state1);
+            continue;
+        }
+        if (!state1.observers.size) {
+            resetStateQueueParams(state1);
+            continue;
+        }
+        if (state1.hasException) {
+            state1.dirtyCount = 0;
+            logHook(state1, "EXCEPTION");
+            if (state1.onException) state1.onException(state1.exception);
+            if (state1.subsCount) config.logException(state1.exception);
+        }
+        if (!state1.dirtyCount) {
+            decreaseDirtyCount(state1);
+            resetStateQueueParams(state1);
+            continue;
+        }
+        const value1 = calcComputed(state1, true);
+        if (value1 !== undefined) {
+            emitUpdateLifecycle(state1, value1);
+            state1.value = value1;
+            notificationQueue.push(state1);
+        } else decreaseDirtyCount(state1);
+        resetStateQueueParams(state1);
+    }
+    calcLevel--;
+    queue = queue.slice(fullQueueLength);
+    queueLength = queue.length;
+    fullQueueLength = queueLength;
+    notify(notificationQueue);
+    recalc();
+}
+function notify(notificationQueue) {
+    const wrapper = config._notificationWrapper;
+    batchLevel++;
+    isolate(()=>{
+        if (wrapper) wrapper(()=>{
+            for (let state of notificationQueue)runSubscribers(state);
+        });
+        else for (let state of notificationQueue)runSubscribers(state);
+    });
+    batchLevel--;
+}
+function decreaseDirtyCount(state) {
+    for (let dependant of state.observers){
+        if (typeof dependant === "function") continue;
+        if (state.hasException && dependant.isCatcher) continue;
+        dependant.dirtyCount--;
+        if (state.hasException && !dependant.hasException) {
+            dependant.hasException = true;
+            dependant.exception = state.exception;
+        }
+    }
+}
+function runSubscribers(state) {
+    let i = state.subsCount;
+    if (!i) return;
+    logHook(state, "NOTIFY_START");
+    if (state.onNotifyStart) state.onNotifyStart(state.value);
+    for (let subscriber of state.observers){
+        if (!i) break;
+        if (typeof subscriber !== "function") continue;
+        subscriber(state.value);
+        --i;
+    }
+    logHook(state, "NOTIFY_END");
+    if (state.onNotifyEnd) state.onNotifyEnd(state.value);
+}
+function getStateValue(state, notTrackDeps) {
+    if (state.isComputing || state.hasCycle) {
+        state.hasCycle = true;
+        config.logException(new CircularDependencyError());
+        return state.value;
+    }
+    if (state.compute && !state.observers.size && !state.isCached.status) {
+        const value = calcComputed(state, false, notTrackDeps);
+        if (value !== undefined) state.value = value;
+    }
+    if (tracking && !notTrackDeps && state.observers) {
+        if (state.hasException && !tracking.hasException && !tracking.isCatcher) {
+            tracking.exception = state.exception;
+            tracking.hasException = true;
+        }
+        const isNewDep = !tracking.dependencies.delete(state);
+        tracking.dependencies.add(state);
+        --tracking.oldDepsCount;
+        if (isNewDep) {
+            if (tracking.observers.size) {
+                activateDependencies(state);
+                state.observers.add(tracking);
+            }
+        }
+    }
+    if (state.compute && !state.dependencies.size) freeze(state);
+    return state.value;
+}
+function calcComputed(state, scheduled, logException) {
+    const prevTracking = tracking;
+    let value;
+    push(state);
+    try {
+        value = state.compute(state.value, scheduled);
+    } catch (e) {
+        state.exception = e;
+        state.hasException = true;
+    }
+    let i = state.oldDepsCount;
+    for (let dependency of state.dependencies){
+        if (i <= 0) break;
+        state.dependencies.delete(dependency);
+        dependency.observers.delete(state);
+        deactivateDependencies(dependency);
+        --i;
+    }
+    pop(prevTracking);
+    if (state.hasException) {
+        logHook(state, "EXCEPTION");
+        if (state.onException) state.onException(state.exception);
+        if (logException || state.subsCount || !state.observers.size && !tracking) config.logException(state.exception);
+    }
+    return value;
+}
+function activateDependencies(state) {
+    if (!state.observers || state.observers.size) return;
+    logHook(state, "ACTIVATE");
+    if (state.onActivate) state.onActivate(state.value);
+    if (!state.dependencies) return;
+    for (let dependency of state.dependencies){
+        activateDependencies(dependency);
+        dependency.observers.add(state);
+    }
+}
+function deactivateDependencies(state) {
+    if (!state.observers || state.observers.size) return;
+    logHook(state, "DEACTIVATE");
+    if (state.$d) state.$d(state.value);
+    if (state.onDeactivate) state.onDeactivate(state.value);
+    if (!state.dependencies) return;
+    for (let dependency of state.dependencies){
+        dependency.observers.delete(state);
+        deactivateDependencies(dependency);
+    }
+}
+function push(state) {
+    cleanupChildren(state);
+    if (!state.observers.size) {
+        if (!depth) cacheStatus = {
+            status: true
+        };
+        ++depth;
+    }
+    tracking = state;
+    tracking.isComputing = true;
+    tracking.isCached = FALSE_STATUS;
+    tracking.oldDepsCount = state.dependencies.size;
+    tracking.hasException = false;
+    return tracking;
+}
+function pop(state) {
+    tracking.isComputing = false;
+    tracking.isCached = cacheStatus;
+    if (depth) --depth;
+    if (!depth) cacheStatus.status = false;
+    tracking = state;
+    return tracking;
+}
+function cleanupChildren(state) {
+    if (state.children && state.children.length) {
+        for (let child of state.children)if (typeof child === "function") child();
+        else cleanupChildren(child);
+        state.children = [];
+    }
+}
+function logHook(state, hook, value) {
+    if (!state.name) return;
+    let payload = state.value;
+    if (hook === "EXCEPTION") payload = state.exception;
+    else if (hook === "UPDATE") payload = {
+        prevValue: state.value,
+        value
+    };
+    config._log(state.name, hook, payload);
+}
+const signalProto = {
+    get () {
+        return getStateValue(this._state);
+    },
+    subscribe (subscriber, exec = true) {
+        addSubscriber(this, subscriber, exec);
+        if (!this._state.observers) return NOOP_FN;
+        const unsub = ()=>removeSubscriber(this, subscriber);
+        const parent = tracking || scope;
+        if (parent) {
+            if (!parent.children) parent.children = [];
+            parent.children.push(unsub);
+        }
+        return unsub;
+    },
+    sample () {
+        return getStateValue(this._state, true);
+    }
+};
+const writableSignalProto = Object.assign(Object.assign({}, signalProto), {
+    set (value) {
+        return update$1(this._state, value);
+    },
+    notify () {
+        return update$1(this._state);
+    }
+});
+function writableSelf(value) {
+    if (!arguments.length) return getStateValue(this);
+    return update$1(this, value);
+}
+function writable(value) {
+    const state = createSignalState(value, undefined);
+    const writable = writableSelf.bind(state);
+    writable._state = state;
+    writable.constructor = writable;
+    writable.set = writableSignalProto.set;
+    writable.get = writableSignalProto.get;
+    writable.notify = writableSignalProto.notify;
+    writable.subscribe = writableSignalProto.subscribe;
+    writable.sample = writableSignalProto.sample;
+    return writable;
+}
+/**
+ * Sets the activate event listener. The event is emitted at the first subscription or at the first activation of a dependent signal.
+ * @param signal Target signal.
+ * @param listener Function that listens to the signal activation event.
+ */ function onActivate(signal, listener) {
+    signal._state.onActivate = listener;
+}
+/**
+ * Sets the deactivate event listener. The event is emitted when there are no subscribers or active dependent signals left.
+ * @param signal Target signal.
+ * @param listener Function that listens to the signal deactivation event.
+ */ function onDeactivate(signal, listener) {
+    signal._state.onDeactivate = listener;
+}
+/**
+ * Sets the update event listener. The event is emitted every time the signal value is updated.
+ * @param signal Target signal.
+ * @param listener Function that listens to the signal update event.
+ */ function onUpdate(signal, listener) {
+    signal._state.onUpdate = listener;
+}
+/**
+ * Sets the update exception handler. The event is emitted for every unhandled exception in the calculation of the signal value.
+ * @param signal Target signal.
+ * @param listener Function that listens to the signal exception event.
+ */ function onException(signal, listener) {
+    signal._state.onException = listener;
+}
+/**
+ * Sets the notify start event listener. The event is emitted before signal subscribers are notified.
+ * @param signal Target signal.
+ * @param listener Function that listens to the signal notification start event.
+ */ function onNotifyStart(signal, listener) {
+    signal._state.onNotifyStart = listener;
+}
+/**
+ * Sets the notify start event listener. The event is emitted after signal subscribers are notified.
+ * @param signal Target signal.
+ * @param listener Function that listens to the signal notification start event.
+ */ function onNotifyEnd(signal, listener) {
+    signal._state.onNotifyEnd = listener;
+}
+function isSignal(value) {
+    return value._state && value.get;
+}
+function isWritableSignal(value) {
+    return isSignal(value) && value.set;
+}
+function isStore(value) {
+    return isSignal(value) && value.update;
+}
+function getValue(value) {
+    return isSignal(value) ? value() : value;
+}
+function sampleValue(value) {
+    return isSignal(value) ? value.sample() : value;
+}
+function computedSelf() {
+    return getStateValue(this);
+}
+/**
+ * Creates a signal that automatically calculates its value from other signals.
+ * @param compute The function that calculates the signal value and returns it.
+ * @returns Computed signal.
+ */ function computed(compute) {
+    const getValue = isWritableSignal(compute) ? ()=>compute() : compute;
+    const state = createSignalState(undefined, getValue);
+    const computed = computedSelf.bind(state);
+    computed._state = state;
+    computed.constructor = computed;
+    computed.get = signalProto.get;
+    computed.subscribe = signalProto.subscribe;
+    computed.sample = signalProto.sample;
+    return computed;
+}
+/**
+ * Creates a computed signal that triggers its dependants and subscribers only if its value changes.
+ * @param compute The function that calculates the signal value and returns it.
+ * @param equals The function that checks if the new value is equal to the previous value. Defaults to Object.is.
+ * @returns Computed signal.
+ */ function memo(compute, equals) {
+    const check = equals || Object.is;
+    const getValue = isWritableSignal(compute) ? ()=>compute() : compute;
+    const comp = computed((prevValue, scheduled)=>{
+        const value = getValue(prevValue, scheduled);
+        if (prevValue === undefined || !check(value, prevValue)) return value;
+        return undefined;
+    });
+    return comp;
+}
+const STOP = {};
+let VALUES_CACHE = {};
+let counter = 1;
+function isPlainObject(obj) {
+    const proto = Object.getPrototypeOf(obj);
+    return proto && proto.constructor === Object;
+}
+function isArray(obj) {
+    return Array.isArray(obj);
+}
+function copy(obj) {
+    if (isArray(obj)) return obj.slice();
+    if (obj && typeof obj === "object") {
+        if (isPlainObject(obj)) return Object.assign({}, obj);
+        throw new StateTypeError();
+    }
+    return obj;
+}
+function getClone(id, state, value) {
+    const cached = VALUES_CACHE[id];
+    if (cached !== undefined) return cached;
+    return copy(arguments.length === 3 ? value : state.sample());
+}
+function clearValuesCache() {
+    VALUES_CACHE = {};
+}
+function update(arg1, arg2) {
+    let updateFn;
+    if (arguments.length === 2) {
+        updateChild(this, arg1, arg2);
+        return;
+    } else updateFn = arg1;
+    const setter = this._setter;
+    const id = this._id;
+    const key = this._key;
+    const parent = this._parent;
+    let value;
+    if (typeof updateFn !== "function") value = updateFn;
+    else {
+        const clone = getClone(id, this);
+        const next = updateFn(clone);
+        if (next === STOP) return;
+        value = next === undefined ? clone : next;
+    }
+    VALUES_CACHE[id] = value;
+    if (setter) {
+        setter(value);
+        return;
+    }
+    parent.update((parentValue)=>{
+        if (!parentValue) return STOP;
+        parentValue[key] = value;
+    });
+}
+function updateChild(self, key, arg) {
+    self.update((state)=>{
+        if (!state) return STOP;
+        const id = self._id + "." + key;
+        let value;
+        if (typeof arg !== "function") value = arg;
+        else {
+            const clone = getClone(id, undefined, state[key]);
+            const next = arg(clone);
+            value = next === undefined ? clone : next;
+        }
+        VALUES_CACHE[id] = value;
+        state[key] = value;
+    });
+}
+function select(key) {
+    const id = this._id + "." + key;
+    const store = memo(()=>{
+        const parentValue = this();
+        const value = parentValue && parentValue[key];
+        if (value === undefined) return null;
+        return value;
+    });
+    store._id = id;
+    store._key = key;
+    store._parent = this;
+    store.select = select;
+    store.update = update;
+    return store;
+}
+function store(initialState) {
+    const id = "store" + counter++;
+    const setter = writable(initialState);
+    const store = memo(setter);
+    store._setter = setter;
+    store._id = id;
+    store.select = select;
+    store.update = update;
+    onUpdate(setter, clearValuesCache);
+    return store;
+}
+/**
+ * Calls the passed function immediately and every time the signals it depends on are updated.
+ * @param fn A function to watch for.
+ * @returns Stop watching function.
+ */ function watch(fn) {
+    const comp = isSignal(fn) ? fn : computed(fn);
+    return comp.subscribe(NOOP_FN);
+}
+/**
+ * Creates a tuple of signal and setter function
+ * @param initialValue
+ * @returns A tuple of signal and setter function
+ */ function signal(initialValue) {
+    const source = writable(initialValue);
+    const signal = computed(source);
+    function set(payload) {
+        if (!arguments.length) return source({});
+        return source(payload);
+    }
+    return [
+        signal,
+        set
+    ];
+}
+/**
+ * Subscribes the function to updates of the signal value.
+ * @param signal Signal.
+ * @param subscriber Function that listens to the signal updates.
+ * @returns Unsubscribe function.
+ */ function on(signal, subscriber) {
+    return signal.subscribe(subscriber, false);
+}
+function named(signal, name) {
+    signal._state.name = name;
+    return signal;
+}
+/**
+ * Creates an effect from asynchronous function.
+ * @param asyncFn Asynchronous function
+ * @returns Effect.
+ */ function effect(asyncFn, name) {
+    let counter = 0;
+    let current = -1;
+    const _status = writable("pristine");
+    const _exception = writable();
+    const _data = writable();
+    const _aborted = writable();
+    const _args = writable();
+    const lastStatus = memo(()=>{
+        const status = _status();
+        return status === "pending" ? undefined : status;
+    });
+    lastStatus.subscribe(NOOP_FN);
+    const status = memo(()=>{
+        const value = _status();
+        return {
+            value,
+            pristine: value === "pristine",
+            pending: value === "pending",
+            fulfilled: value === "fulfilled",
+            rejected: value === "rejected",
+            settled: value === "fulfilled" || value === "rejected"
+        };
+    }, (status, prevStatus)=>{
+        return status.value === prevStatus.value;
+    });
+    const exception = computed(_exception);
+    const done = computed(()=>{
+        const data = _data();
+        const exception = _exception();
+        switch(_status.sample()){
+            case "pristine":
+            case "fulfilled":
+                return data;
+            case "rejected":
+                return exception;
+        }
+    });
+    const data = computed(_data);
+    const aborted = computed(_aborted);
+    const args = computed(_args);
+    const abort = ()=>{
+        if (!status.sample().pending) return;
+        logEvent(name, "ABORT");
+        batch(()=>{
+            _status(lastStatus());
+            _aborted({});
+        });
+        counter++;
+    };
+    const reset = ()=>{
+        if (status.sample().pristine) return;
+        logEvent(name, "RESET");
+        batch(()=>{
+            if (status().pending) _aborted({});
+            _status("pristine");
+        });
+        counter++;
+    };
+    const exec = (id, ...args)=>{
+        return asyncFn(...args).then((res)=>{
+            current = id;
+            return res;
+        }).catch((e)=>{
+            current = id;
+            throw e;
+        });
+    };
+    const call = (...args)=>{
+        logEvent(name, "CALL", args);
+        if (_status.sample() === "pending") _aborted({});
+        _args(args);
+        _status("pending");
+        return exec(++counter, ...args).then((v)=>{
+            if (current !== counter) return v;
+            batch(()=>{
+                _data(v);
+                _status("fulfilled");
+            });
+            return v;
+        }).catch((e)=>{
+            if (current !== counter) throw e;
+            batch(()=>{
+                _exception(e);
+                _status("rejected");
+            });
+            throw e;
+        });
+    };
+    if (name) {
+        named(data, name + ".data");
+        named(exception, name + ".exception");
+        named(done, name + ".done");
+        named(aborted, name + ".aborted");
+        named(args, name + ".args");
+        named(status, name + ".status");
+    }
+    return {
+        data,
+        exception,
+        done,
+        aborted,
+        args,
+        status,
+        call,
+        abort,
+        reset
+    };
+}
+function logEvent(effectName, eventName, payload) {
+    if (!effectName) return;
+    config._log(effectName, eventName, payload);
+}
+/**
+ * Creates a computed signal that handles exceptions that occur during computations.
+ * @param compute The function that calculates the signal value and returns it.
+ * @param handle The function that handles an exception and returns the new signal value.
+ * @returns Computed signal.
+ */ function catcher(compute, handle) {
+    const getValue = isSignal(compute) ? compute : computed(compute);
+    const comp = computed((prevValue)=>{
+        const value = getValue();
+        const state = getValue._state;
+        if (state.hasException) return handle(state.exception, prevValue);
+        return value;
+    });
+    comp._state.isCatcher = true;
+    return comp;
+}
+function createLogger(opts) {
+    const include = opts && opts.include;
+    const exclude = opts && opts.exclude;
+    function log(unitName, ...rest) {
+        console.log(`%c[${unitName}]%c`, "font-weight: bold", "font-weight: normal", ...rest);
+    }
+    function createLogFn() {
+        return (unitName, ...rest)=>{
+            let shouldLog = true;
+            if (include) shouldLog = include.includes(rest[0]);
+            if (exclude) shouldLog = shouldLog && !exclude.includes(rest[0]);
+            if (shouldLog) log(unitName, ...rest);
+        };
+    }
+    return createLogFn();
 }
 
-},{"nanoid":"2ifus","./model/host-controller":"28P4X","./model/player-controller":"6YFso"}],"2ifus":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"gkKU3":[function(require,module,exports) {
+exports.interopDefault = function(a) {
+    return a && a.__esModule ? a : {
+        default: a
+    };
+};
+exports.defineInteropFlag = function(a) {
+    Object.defineProperty(a, "__esModule", {
+        value: true
+    });
+};
+exports.exportAll = function(source, dest) {
+    Object.keys(source).forEach(function(key) {
+        if (key === "default" || key === "__esModule" || dest.hasOwnProperty(key)) return;
+        Object.defineProperty(dest, key, {
+            enumerable: true,
+            get: function() {
+                return source[key];
+            }
+        });
+    });
+    return dest;
+};
+exports.export = function(dest, destName, get) {
+    Object.defineProperty(dest, destName, {
+        enumerable: true,
+        get: get
+    });
+};
+
+},{}],"8aT8g":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "route", ()=>route);
+parcelHelpers.export(exports, "roomId", ()=>roomId);
+var _spred = require("spred");
+const hash = (0, _spred.writable)(location.hash);
+const tuple = (0, _spred.computed)(()=>hash().split("/"));
+window.addEventListener("hashchange", ()=>{
+    hash(location.hash);
+});
+const route = (0, _spred.memo)(()=>{
+    const str = tuple()[0];
+    if (str === "#play") return "PLAY";
+    else if (str === "#host") return "HOST";
+    return "MAIN";
+});
+const roomId = (0, _spred.memo)(()=>tuple()[1]);
+
+},{"spred":"7ewWT","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"89w9c":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "MainView", ()=>MainView);
+var _mainViewModuleScss = require("./main-view.module.scss");
+var _spredDom = require("spred-dom");
+var _logo = require("./logo/logo");
+var _startLink = require("./start-link/start-link");
+const MainView = (0, _spredDom.component)(()=>(0, _spredDom.h)("div", {
+        class: _mainViewModuleScss.container
+    }, ()=>{
+        (0, _logo.logo)();
+        (0, _spredDom.h)("div", {
+            class: _mainViewModuleScss.menu
+        }, ()=>{
+            (0, _startLink.startLink)();
+        });
+    }));
+
+},{"./main-view.module.scss":"8R0yM","spred-dom":"dR8Fz","./logo/logo":"ckAnz","./start-link/start-link":"1ObzB","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"8R0yM":[function(require,module,exports) {
+module.exports["menu"] = `-7AyLG_menu`;
+module.exports["container"] = `-7AyLG_container`;
+
+},{}],"ckAnz":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "Logo", ()=>Logo);
+parcelHelpers.export(exports, "logo", ()=>logo);
+var _logoModuleScss = require("./logo.module.scss");
+var _spredDom = require("spred-dom");
+const Logo = (0, _spredDom.component)(()=>(0, _spredDom.h)("h1", {
+        class: _logoModuleScss.logo
+    }, ()=>{
+        (0, _spredDom.h)("span", {
+            class: _logoModuleScss.top
+        }, ()=>{
+            (0, _spredDom.h)("span", {
+                text: "С"
+            });
+            (0, _spredDom.h)("span", {
+                text: "О"
+            });
+            (0, _spredDom.h)("span", {
+                text: "Б"
+            });
+            (0, _spredDom.h)("span", {
+                text: "Е"
+            });
+            (0, _spredDom.h)("span", {
+                text: "Р"
+            });
+            (0, _spredDom.h)("span", {
+                text: "И"
+            });
+        });
+        (0, _spredDom.h)("span", {
+            class: _logoModuleScss.bottom
+        }, ()=>{
+            (0, _spredDom.h)("span", {
+                text: "М"
+            });
+            (0, _spredDom.h)("span", {
+                text: "Е"
+            });
+            (0, _spredDom.h)("span", {
+                text: "М"
+            });
+        });
+    }));
+const logo = (0, _spredDom.templateFn)(Logo);
+
+},{"./logo.module.scss":"1roUS","spred-dom":"dR8Fz","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"1roUS":[function(require,module,exports) {
+module.exports["logo"] = `it9Olq_logo`;
+module.exports["top"] = `it9Olq_top`;
+module.exports["bottom"] = `it9Olq_bottom`;
+
+},{}],"1ObzB":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "StartLink", ()=>StartLink);
+parcelHelpers.export(exports, "startLink", ()=>startLink);
+var _nanoid = require("nanoid");
+var _spredDom = require("spred-dom");
+var _button = require("../../ui/button/button");
+const StartLink = (0, _spredDom.component)(()=>{
+    const url = "#host/" + (0, _nanoid.nanoid)();
+    return (0, _spredDom.h)(()=>(0, _button.buttonLink)({
+            href: ()=>url,
+            text: ()=>"Создать Игру"
+        }));
+});
+const startLink = (0, _spredDom.templateFn)(StartLink);
+
+},{"nanoid":"2ifus","spred-dom":"dR8Fz","../../ui/button/button":"6oMMs","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"2ifus":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "urlAlphabet", ()=>(0, _indexJs.urlAlphabet));
@@ -596,35 +2145,62 @@ let nanoid = (size = 21)=>crypto.getRandomValues(new Uint8Array(size)).reduce((i
         return id;
     }, "");
 
-},{"./url-alphabet/index.js":false,"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"gkKU3":[function(require,module,exports) {
-exports.interopDefault = function(a) {
-    return a && a.__esModule ? a : {
-        default: a
-    };
-};
-exports.defineInteropFlag = function(a) {
-    Object.defineProperty(a, "__esModule", {
-        value: true
+},{"./url-alphabet/index.js":false,"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"6oMMs":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "ButtonLink", ()=>ButtonLink);
+parcelHelpers.export(exports, "buttonLink", ()=>buttonLink);
+var _buttonModuleScss = require("./button.module.scss");
+var _spredDom = require("spred-dom");
+const ButtonLink = (0, _spredDom.component)(({ href , text  })=>{
+    return (0, _spredDom.h)("a", {
+        href,
+        text,
+        class: _buttonModuleScss.button
     });
-};
-exports.exportAll = function(source, dest) {
-    Object.keys(source).forEach(function(key) {
-        if (key === "default" || key === "__esModule" || dest.hasOwnProperty(key)) return;
-        Object.defineProperty(dest, key, {
-            enumerable: true,
-            get: function() {
-                return source[key];
-            }
+});
+const buttonLink = (0, _spredDom.templateFn)(ButtonLink);
+
+},{"./button.module.scss":"5iHvX","spred-dom":"dR8Fz","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"5iHvX":[function(require,module,exports) {
+module.exports["button"] = `rYiXjW_button`;
+
+},{}],"hfveM":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "PlayerView", ()=>PlayerView);
+var _spredDom = require("spred-dom");
+const PlayerView = (0, _spredDom.component)(()=>{
+    return (0, _spredDom.h)("div");
+});
+
+},{"spred-dom":"dR8Fz","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"ckeGd":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "HostView", ()=>HostView);
+var _hostViewModuleScss = require("./host-view.module.scss");
+var _spredDom = require("spred-dom");
+var _spred = require("spred");
+var _hostController = require("../../model/host-controller");
+var _routing = require("../../model/routing");
+var _hostLobby = require("./host-lobby/host-lobby");
+var _loadingScreen = require("../ui/loading-screen/loading-screen");
+const HostView = (0, _spredDom.component)(()=>{
+    const controllerSignal = (0, _spred.computed)(()=>new (0, _hostController.HostController)((0, _routing.roomId)()));
+    const state = (0, _spred.computed)(()=>controllerSignal().state());
+    state.subscribe((value)=>console.log(value));
+    return (0, _spredDom.h)("div", {
+        class: _hostViewModuleScss.container
+    }, ()=>{
+        (0, _spredDom.node)(()=>{
+            const controller = controllerSignal();
+            if (controller.loading()) return (0, _loadingScreen.LoadingScreen)();
+            return (0, _hostLobby.HostLobby)();
         });
     });
-    return dest;
-};
-exports.export = function(dest, destName, get) {
-    Object.defineProperty(dest, destName, {
-        enumerable: true,
-        get: get
-    });
-};
+});
+
+},{"./host-view.module.scss":"clTeg","spred-dom":"dR8Fz","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","spred":"7ewWT","../../model/host-controller":"28P4X","../../model/routing":"8aT8g","../ui/loading-screen/loading-screen":"dzgPb","./host-lobby/host-lobby":"4wY6d"}],"clTeg":[function(require,module,exports) {
+module.exports["container"] = `lZpstG_container`;
 
 },{}],"28P4X":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
@@ -646,7 +2222,7 @@ class HostController extends (0, _gameController.GameController) {
     }
 }
 
-},{"../../common/action":"1JFEc","../../common/client-type":"4iKJW","../../common/game-stage":"4owkS","./game-controller":"5xcef","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","spred":"7ewWT"}],"1JFEc":[function(require,module,exports) {
+},{"spred":"7ewWT","../../common/action":"1JFEc","../../common/client-type":"4iKJW","../../common/game-stage":"4owkS","./game-controller":"5xcef","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"1JFEc":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "Action", ()=>Action);
@@ -695,7 +2271,7 @@ class GameController {
         loading: true
     });
     state = (0, _spred.computed)(this._state);
-    loading = (0, _spred.memo)(()=>this.state().loading);
+    loading = (0, _spred.memo)(()=>this.state().loading || false);
     stage = (0, _spred.memo)(()=>this.state().stage);
     error = (0, _spred.memo)(()=>this.state().error);
     voteCard = (0, _spred.memo)(()=>{
@@ -5320,891 +6896,63 @@ function Backoff(opts) {
     this.jitter = jitter;
 };
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"7ewWT":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"dzgPb":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "batch", ()=>batch);
-parcelHelpers.export(exports, "catcher", ()=>catcher);
-parcelHelpers.export(exports, "collect", ()=>collect);
-parcelHelpers.export(exports, "computed", ()=>computed);
-parcelHelpers.export(exports, "configure", ()=>configure);
-parcelHelpers.export(exports, "createLogger", ()=>createLogger);
-parcelHelpers.export(exports, "effect", ()=>effect);
-parcelHelpers.export(exports, "getValue", ()=>getValue);
-parcelHelpers.export(exports, "isSignal", ()=>isSignal);
-parcelHelpers.export(exports, "isStore", ()=>isStore);
-parcelHelpers.export(exports, "isWritableSignal", ()=>isWritableSignal);
-parcelHelpers.export(exports, "isolate", ()=>isolate);
-parcelHelpers.export(exports, "memo", ()=>memo);
-parcelHelpers.export(exports, "named", ()=>named);
-parcelHelpers.export(exports, "on", ()=>on);
-parcelHelpers.export(exports, "onActivate", ()=>onActivate);
-parcelHelpers.export(exports, "onDeactivate", ()=>onDeactivate);
-parcelHelpers.export(exports, "onException", ()=>onException);
-parcelHelpers.export(exports, "onNotifyEnd", ()=>onNotifyEnd);
-parcelHelpers.export(exports, "onNotifyStart", ()=>onNotifyStart);
-parcelHelpers.export(exports, "onUpdate", ()=>onUpdate);
-parcelHelpers.export(exports, "sampleValue", ()=>sampleValue);
-parcelHelpers.export(exports, "signal", ()=>signal);
-parcelHelpers.export(exports, "store", ()=>store);
-parcelHelpers.export(exports, "watch", ()=>watch);
-parcelHelpers.export(exports, "writable", ()=>writable);
-const NOOP_FN = ()=>{};
-const FALSE_STATUS = {
-    status: false
-};
-function createSignalState(value, compute) {
-    const parent = tracking || scope;
-    const state = {
-        value,
-        compute,
-        observers: new Set(),
-        dirtyCount: 0,
-        queueIndex: -1,
-        subsCount: 0,
-        oldDepsCount: 0,
-        isCached: FALSE_STATUS
-    };
-    if (compute) state.dependencies = new Set();
-    else state.nextValue = value;
-    if (parent) {
-        if (!parent.children) parent.children = [];
-        parent.children.push(state);
-    }
-    return state;
-}
-function freeze(state) {
-    delete state.compute;
-    delete state.observers;
-    delete state.dependencies;
-    delete state.dirtyCount;
-    delete state.isCached;
-    delete state.queueIndex;
-    delete state.oldDepsCount;
-    delete state.hasException;
-    delete state.subsCount;
-    delete state.isComputing;
-}
-const DEFAULT_CONFIG = {
-    logException: /* istanbul ignore next */ (e)=>console.error(e),
-    _log: NOOP_FN
-};
-const config = Object.assign({}, DEFAULT_CONFIG);
-function configure(configUpdate) {
-    Object.assign(config, configUpdate || DEFAULT_CONFIG);
-    if (!config.logger) config._log = NOOP_FN;
-    else config._log = config.logger;
-}
-const ERROR_NAME = "[SPRED ERROR]";
-class CircularDependencyError extends Error {
-    constructor(){
-        super();
-        this.name = ERROR_NAME;
-        this.message = "Circular dependency detected";
-    }
-}
-class StateTypeError extends Error {
-    constructor(){
-        super();
-        this.name = ERROR_NAME;
-        this.message = "State data must be a plain object or an array or a primitive";
-    }
-}
-let tracking = null;
-let scope = null;
-let batchLevel = 0;
-let calcLevel = 0;
-let queue = [];
-let queueLength = 0;
-let fullQueueLength = 0;
-let depth = 0;
-let cacheStatus = {
-    status: true
-};
-function isolate(fn, args) {
-    const prevCacheStatus = cacheStatus;
-    const prevDepth = depth;
-    const prevTracking = tracking;
-    const prevScope = scope;
-    let result;
-    if (tracking) scope = tracking;
-    tracking = null;
-    depth = 0;
-    if (args) result = fn(...args);
-    else result = fn();
-    cacheStatus = prevCacheStatus;
-    depth = prevDepth;
-    tracking = prevTracking;
-    scope = prevScope;
-    return result;
-}
-function collect(fn) {
-    const prevCacheStatus = cacheStatus;
-    const prevDepth = depth;
-    const prevTracking = tracking;
-    const prevScope = scope;
-    const fakeState = {};
-    scope = fakeState;
-    tracking = null;
-    depth = 0;
-    fn();
-    cacheStatus = prevCacheStatus;
-    depth = prevDepth;
-    tracking = prevTracking;
-    scope = prevScope;
-    return ()=>cleanupChildren(fakeState);
-}
-/**
- * Commits all writable signal updates inside the passed function as a single transaction.
- * @param fn The function with updates.
- */ function batch(fn) {
-    batchLevel++;
-    fn();
-    batchLevel--;
-    recalc();
-}
-function update$1(state, value) {
-    if (arguments.length > 1) {
-        if (typeof value === "function") state.nextValue = value(state.nextValue);
-        else state.nextValue = value;
-    } else if (state.compute) state.dirtyCount++;
-    state.queueIndex = queueLength - fullQueueLength;
-    queueLength = queue.push(state);
-    recalc();
-    return state.nextValue;
-}
-function addSubscriber(signal, subscriber, exec) {
-    const state = signal._state;
-    if (state.observers && state.observers.has(subscriber)) return;
-    const value = getStateValue(state, true);
-    if (!state.observers) {
-        if (exec) subscriber(value, true);
-        return;
-    }
-    activateDependencies(state);
-    state.observers.add(subscriber);
-    state.subsCount++;
-    if (exec) isolate(()=>subscriber(value, true));
-}
-function removeSubscriber(signal, subscriber) {
-    const state = signal._state;
-    if (state.observers.delete(subscriber)) {
-        state.subsCount--;
-        deactivateDependencies(state);
-    }
-}
-function resetStateQueueParams(state) {
-    state.dirtyCount = 0;
-    state.queueIndex = -1;
-}
-function emitUpdateLifecycle(state, value) {
-    logHook(state, "UPDATE", value);
-    if (!state.onUpdate) return;
-    state.onUpdate({
-        value: value,
-        prevValue: state.value
-    });
-}
-/**
- * Immediately calculates the updated values of the signals and notifies their subscribers.
- */ function recalc() {
-    if (!queueLength || calcLevel || batchLevel) return;
-    const notificationQueue = [];
-    calcLevel++;
-    for(let i = 0; i < queueLength; i++){
-        const state = queue[i];
-        if (state.queueIndex !== i || !state.observers) continue;
-        state.hasException = false;
-        for (let dependant of state.observers){
-            if (typeof dependant === "function") continue;
-            dependant.queueIndex = queueLength;
-            dependant.dirtyCount++;
-            queueLength = queue.push(dependant);
-        }
-    }
-    fullQueueLength = queueLength;
-    for(let i1 = 0; i1 < fullQueueLength; i1++){
-        const state1 = queue[i1];
-        if (state1.queueIndex !== i1) continue;
-        if (!state1.compute) {
-            const value = state1.nextValue;
-            const shouldUpdate = value !== undefined;
-            if (shouldUpdate) {
-                emitUpdateLifecycle(state1, value);
-                state1.value = value;
-                notificationQueue.push(state1);
-            }
-            resetStateQueueParams(state1);
-            continue;
-        }
-        if (!state1.observers.size) {
-            resetStateQueueParams(state1);
-            continue;
-        }
-        if (state1.hasException) {
-            state1.dirtyCount = 0;
-            logHook(state1, "EXCEPTION");
-            if (state1.onException) state1.onException(state1.exception);
-            if (state1.subsCount) config.logException(state1.exception);
-        }
-        if (!state1.dirtyCount) {
-            decreaseDirtyCount(state1);
-            resetStateQueueParams(state1);
-            continue;
-        }
-        const value1 = calcComputed(state1, true);
-        if (value1 !== undefined) {
-            emitUpdateLifecycle(state1, value1);
-            state1.value = value1;
-            notificationQueue.push(state1);
-        } else decreaseDirtyCount(state1);
-        resetStateQueueParams(state1);
-    }
-    calcLevel--;
-    queue = queue.slice(fullQueueLength);
-    queueLength = queue.length;
-    fullQueueLength = queueLength;
-    notify(notificationQueue);
-    recalc();
-}
-function notify(notificationQueue) {
-    const wrapper = config._notificationWrapper;
-    batchLevel++;
-    isolate(()=>{
-        if (wrapper) wrapper(()=>{
-            for (let state of notificationQueue)runSubscribers(state);
+parcelHelpers.export(exports, "LoadingScreen", ()=>LoadingScreen);
+var _loadingScreenModuleScss = require("./loading-screen.module.scss");
+var _spredDom = require("spred-dom");
+const LoadingScreen = (0, _spredDom.component)(()=>(0, _spredDom.h)("div", {
+        class: _loadingScreenModuleScss.loading
+    }, ()=>{
+        (0, _spredDom.h)("h1", ()=>{
+            (0, _spredDom.h)("span", {
+                text: "Загрузка"
+            });
+            (0, _spredDom.h)("span", {
+                class: _loadingScreenModuleScss.dot1,
+                text: "."
+            });
+            (0, _spredDom.h)("span", {
+                class: _loadingScreenModuleScss.dot2,
+                text: "."
+            });
+            (0, _spredDom.h)("span", {
+                class: _loadingScreenModuleScss.dot3,
+                text: "."
+            });
         });
-        else for (let state of notificationQueue)runSubscribers(state);
+    }));
+
+},{"./loading-screen.module.scss":"lYmeo","spred-dom":"dR8Fz","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"lYmeo":[function(require,module,exports) {
+module.exports["dot1"] = `bbT0CG_dot1`;
+module.exports["dot1"];
+module.exports["dot3"] = `bbT0CG_dot3`;
+module.exports["dot3"];
+module.exports["loading"] = `bbT0CG_loading`;
+module.exports["dot2"] = `bbT0CG_dot2`;
+module.exports["dot2"];
+
+},{}],"4wY6d":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "HostLobby", ()=>HostLobby);
+var _spredDom = require("spred-dom");
+const Lobby = (0, _spredDom.component)(()=>{
+    return (0, _spredDom.h)(()=>{
+        (0, _spredDom.h)("h1", {
+            text: "Новая Игра"
+        });
     });
-    batchLevel--;
-}
-function decreaseDirtyCount(state) {
-    for (let dependant of state.observers){
-        if (typeof dependant === "function") continue;
-        if (state.hasException && dependant.isCatcher) continue;
-        dependant.dirtyCount--;
-        if (state.hasException && !dependant.hasException) {
-            dependant.hasException = true;
-            dependant.exception = state.exception;
-        }
-    }
-}
-function runSubscribers(state) {
-    let i = state.subsCount;
-    if (!i) return;
-    logHook(state, "NOTIFY_START");
-    if (state.onNotifyStart) state.onNotifyStart(state.value);
-    for (let subscriber of state.observers){
-        if (!i) break;
-        if (typeof subscriber !== "function") continue;
-        subscriber(state.value);
-        --i;
-    }
-    logHook(state, "NOTIFY_END");
-    if (state.onNotifyEnd) state.onNotifyEnd(state.value);
-}
-function getStateValue(state, notTrackDeps) {
-    if (state.isComputing || state.hasCycle) {
-        state.hasCycle = true;
-        config.logException(new CircularDependencyError());
-        return state.value;
-    }
-    if (state.compute && !state.observers.size && !state.isCached.status) {
-        const value = calcComputed(state, false, notTrackDeps);
-        if (value !== undefined) state.value = value;
-    }
-    if (tracking && !notTrackDeps && state.observers) {
-        if (state.hasException && !tracking.hasException && !tracking.isCatcher) {
-            tracking.exception = state.exception;
-            tracking.hasException = true;
-        }
-        const isNewDep = !tracking.dependencies.delete(state);
-        tracking.dependencies.add(state);
-        --tracking.oldDepsCount;
-        if (isNewDep) {
-            if (tracking.observers.size) {
-                activateDependencies(state);
-                state.observers.add(tracking);
-            }
-        }
-    }
-    if (state.compute && !state.dependencies.size) freeze(state);
-    return state.value;
-}
-function calcComputed(state, scheduled, logException) {
-    const prevTracking = tracking;
-    let value;
-    push(state);
-    try {
-        value = state.compute(state.value, scheduled);
-    } catch (e) {
-        state.exception = e;
-        state.hasException = true;
-    }
-    let i = state.oldDepsCount;
-    for (let dependency of state.dependencies){
-        if (i <= 0) break;
-        state.dependencies.delete(dependency);
-        dependency.observers.delete(state);
-        deactivateDependencies(dependency);
-        --i;
-    }
-    pop(prevTracking);
-    if (state.hasException) {
-        logHook(state, "EXCEPTION");
-        if (state.onException) state.onException(state.exception);
-        if (logException || state.subsCount || !state.observers.size && !tracking) config.logException(state.exception);
-    }
-    return value;
-}
-function activateDependencies(state) {
-    if (!state.observers || state.observers.size) return;
-    logHook(state, "ACTIVATE");
-    if (state.onActivate) state.onActivate(state.value);
-    if (!state.dependencies) return;
-    for (let dependency of state.dependencies){
-        activateDependencies(dependency);
-        dependency.observers.add(state);
-    }
-}
-function deactivateDependencies(state) {
-    if (!state.observers || state.observers.size) return;
-    logHook(state, "DEACTIVATE");
-    if (state.$d) state.$d(state.value);
-    if (state.onDeactivate) state.onDeactivate(state.value);
-    if (!state.dependencies) return;
-    for (let dependency of state.dependencies){
-        dependency.observers.delete(state);
-        deactivateDependencies(dependency);
-    }
-}
-function push(state) {
-    cleanupChildren(state);
-    if (!state.observers.size) {
-        if (!depth) cacheStatus = {
-            status: true
-        };
-        ++depth;
-    }
-    tracking = state;
-    tracking.isComputing = true;
-    tracking.isCached = FALSE_STATUS;
-    tracking.oldDepsCount = state.dependencies.size;
-    tracking.hasException = false;
-    return tracking;
-}
-function pop(state) {
-    tracking.isComputing = false;
-    tracking.isCached = cacheStatus;
-    if (depth) --depth;
-    if (!depth) cacheStatus.status = false;
-    tracking = state;
-    return tracking;
-}
-function cleanupChildren(state) {
-    if (state.children && state.children.length) {
-        for (let child of state.children)if (typeof child === "function") child();
-        else cleanupChildren(child);
-        state.children = [];
-    }
-}
-function logHook(state, hook, value) {
-    if (!state.name) return;
-    let payload = state.value;
-    if (hook === "EXCEPTION") payload = state.exception;
-    else if (hook === "UPDATE") payload = {
-        prevValue: state.value,
-        value
-    };
-    config._log(state.name, hook, payload);
-}
-const signalProto = {
-    get () {
-        return getStateValue(this._state);
-    },
-    subscribe (subscriber, exec = true) {
-        addSubscriber(this, subscriber, exec);
-        if (!this._state.observers) return NOOP_FN;
-        const unsub = ()=>removeSubscriber(this, subscriber);
-        const parent = tracking || scope;
-        if (parent) {
-            if (!parent.children) parent.children = [];
-            parent.children.push(unsub);
-        }
-        return unsub;
-    },
-    sample () {
-        return getStateValue(this._state, true);
-    }
-};
-const writableSignalProto = Object.assign(Object.assign({}, signalProto), {
-    set (value) {
-        return update$1(this._state, value);
-    },
-    notify () {
-        return update$1(this._state);
-    }
 });
-function writableSelf(value) {
-    if (!arguments.length) return getStateValue(this);
-    return update$1(this, value);
-}
-function writable(value) {
-    const state = createSignalState(value, undefined);
-    const writable = writableSelf.bind(state);
-    writable._state = state;
-    writable.constructor = writable;
-    writable.set = writableSignalProto.set;
-    writable.get = writableSignalProto.get;
-    writable.notify = writableSignalProto.notify;
-    writable.subscribe = writableSignalProto.subscribe;
-    writable.sample = writableSignalProto.sample;
-    return writable;
-}
-/**
- * Sets the activate event listener. The event is emitted at the first subscription or at the first activation of a dependent signal.
- * @param signal Target signal.
- * @param listener Function that listens to the signal activation event.
- */ function onActivate(signal, listener) {
-    signal._state.onActivate = listener;
-}
-/**
- * Sets the deactivate event listener. The event is emitted when there are no subscribers or active dependent signals left.
- * @param signal Target signal.
- * @param listener Function that listens to the signal deactivation event.
- */ function onDeactivate(signal, listener) {
-    signal._state.onDeactivate = listener;
-}
-/**
- * Sets the update event listener. The event is emitted every time the signal value is updated.
- * @param signal Target signal.
- * @param listener Function that listens to the signal update event.
- */ function onUpdate(signal, listener) {
-    signal._state.onUpdate = listener;
-}
-/**
- * Sets the update exception handler. The event is emitted for every unhandled exception in the calculation of the signal value.
- * @param signal Target signal.
- * @param listener Function that listens to the signal exception event.
- */ function onException(signal, listener) {
-    signal._state.onException = listener;
-}
-/**
- * Sets the notify start event listener. The event is emitted before signal subscribers are notified.
- * @param signal Target signal.
- * @param listener Function that listens to the signal notification start event.
- */ function onNotifyStart(signal, listener) {
-    signal._state.onNotifyStart = listener;
-}
-/**
- * Sets the notify start event listener. The event is emitted after signal subscribers are notified.
- * @param signal Target signal.
- * @param listener Function that listens to the signal notification start event.
- */ function onNotifyEnd(signal, listener) {
-    signal._state.onNotifyEnd = listener;
-}
-function isSignal(value) {
-    return value._state && value.get;
-}
-function isWritableSignal(value) {
-    return isSignal(value) && value.set;
-}
-function isStore(value) {
-    return isSignal(value) && value.update;
-}
-function getValue(value) {
-    return isSignal(value) ? value() : value;
-}
-function sampleValue(value) {
-    return isSignal(value) ? value.sample() : value;
-}
-function computedSelf() {
-    return getStateValue(this);
-}
-/**
- * Creates a signal that automatically calculates its value from other signals.
- * @param compute The function that calculates the signal value and returns it.
- * @returns Computed signal.
- */ function computed(compute) {
-    const getValue = isWritableSignal(compute) ? ()=>compute() : compute;
-    const state = createSignalState(undefined, getValue);
-    const computed = computedSelf.bind(state);
-    computed._state = state;
-    computed.constructor = computed;
-    computed.get = signalProto.get;
-    computed.subscribe = signalProto.subscribe;
-    computed.sample = signalProto.sample;
-    return computed;
-}
-/**
- * Creates a computed signal that triggers its dependants and subscribers only if its value changes.
- * @param compute The function that calculates the signal value and returns it.
- * @param equals The function that checks if the new value is equal to the previous value. Defaults to Object.is.
- * @returns Computed signal.
- */ function memo(compute, equals) {
-    const check = equals || Object.is;
-    const getValue = isWritableSignal(compute) ? ()=>compute() : compute;
-    const comp = computed((prevValue, scheduled)=>{
-        const value = getValue(prevValue, scheduled);
-        if (prevValue === undefined || !check(value, prevValue)) return value;
-        return undefined;
-    });
-    return comp;
-}
-const STOP = {};
-const STORES_CACHE = {};
-let VALUES_CACHE = {};
-let counter = 1;
-function isPlainObject(obj) {
-    const proto = Object.getPrototypeOf(obj);
-    return proto && proto.constructor === Object;
-}
-function isArray(obj) {
-    return Array.isArray(obj);
-}
-function copy(obj) {
-    if (isArray(obj)) return obj.slice();
-    if (obj && typeof obj === "object") {
-        if (isPlainObject(obj)) return Object.assign({}, obj);
-        throw new StateTypeError();
-    }
-    return obj;
-}
-function getClone(id, state, value) {
-    const cached = VALUES_CACHE[id];
-    if (cached !== undefined) return cached;
-    return copy(arguments.length === 3 ? value : state.sample());
-}
-function clearValuesCache() {
-    VALUES_CACHE = {};
-}
-function update(arg1, arg2) {
-    let updateFn;
-    if (arguments.length === 2) {
-        updateChild(this, arg1, arg2);
-        return;
-    } else updateFn = arg1;
-    const setter = this._setter;
-    const id = this._id;
-    const key = this._key;
-    const parent = this._parent;
-    let value;
-    if (typeof updateFn !== "function") value = updateFn;
-    else {
-        const clone = getClone(id, this);
-        const next = updateFn(clone);
-        if (next === STOP) return;
-        value = next === undefined ? clone : next;
-    }
-    VALUES_CACHE[id] = value;
-    if (setter) {
-        setter(value);
-        return;
-    }
-    parent.update((parentValue)=>{
-        if (!parentValue) return STOP;
-        parentValue[key] = value;
-    });
-}
-function updateChild(self, key, arg) {
-    self.update((state)=>{
-        if (!state) return STOP;
-        const id = self._id + "." + key;
-        let value;
-        if (typeof arg !== "function") value = arg;
-        else {
-            const clone = getClone(id, undefined, state[key]);
-            const next = arg(clone);
-            value = next === undefined ? clone : next;
-        }
-        VALUES_CACHE[id] = value;
-        state[key] = value;
-    });
-}
-function select(key) {
-    const id = this._id + "." + key;
-    const cached = STORES_CACHE[id];
-    if (cached) return cached;
-    const store = memo(()=>{
-        const parentValue = this();
-        const value = parentValue && parentValue[key];
-        if (value === undefined) return null;
-        return value;
-    });
-    store._id = id;
-    store._key = key;
-    store._parent = this;
-    store.select = select;
-    store.update = update;
-    STORES_CACHE[id] = store;
-    store._state.$d = ()=>delete STORES_CACHE[id];
-    return store;
-}
-function store(initialState) {
-    const id = "store" + counter++;
-    const setter = writable(initialState);
-    const store = memo(setter);
-    store._setter = setter;
-    store._id = id;
-    store.select = select;
-    store.update = update;
-    onUpdate(setter, clearValuesCache);
-    return store;
-}
-/**
- * Calls the passed function immediately and every time the signals it depends on are updated.
- * @param fn A function to watch for.
- * @returns Stop watching function.
- */ function watch(fn) {
-    const comp = isSignal(fn) ? fn : computed(fn);
-    return comp.subscribe(NOOP_FN);
-}
-/**
- * Creates a tuple of signal and setter function
- * @param initialValue
- * @returns A tuple of signal and setter function
- */ function signal(initialValue) {
-    const source = writable(initialValue);
-    const signal = computed(source);
-    function set(payload) {
-        if (!arguments.length) return source({});
-        return source(payload);
-    }
-    return [
-        signal,
-        set
-    ];
-}
-/**
- * Subscribes the function to updates of the signal value.
- * @param signal Signal.
- * @param subscriber Function that listens to the signal updates.
- * @returns Unsubscribe function.
- */ function on(signal, subscriber) {
-    return signal.subscribe(subscriber, false);
-}
-function named(signal, name) {
-    signal._state.name = name;
-    return signal;
-}
-/**
- * Creates an effect from asynchronous function.
- * @param asyncFn Asynchronous function
- * @returns Effect.
- */ function effect(asyncFn, name) {
-    let counter = 0;
-    let current = -1;
-    const _status = writable("pristine");
-    const _exception = writable();
-    const _data = writable();
-    const _aborted = writable();
-    const _args = writable();
-    const lastStatus = memo(()=>{
-        const status = _status();
-        return status === "pending" ? undefined : status;
-    });
-    lastStatus.subscribe(NOOP_FN);
-    const status = memo(()=>{
-        const value = _status();
-        return {
-            value,
-            pristine: value === "pristine",
-            pending: value === "pending",
-            fulfilled: value === "fulfilled",
-            rejected: value === "rejected",
-            settled: value === "fulfilled" || value === "rejected"
-        };
-    }, (status, prevStatus)=>{
-        return status.value === prevStatus.value;
-    });
-    const exception = computed(_exception);
-    const done = computed(()=>{
-        const data = _data();
-        const exception = _exception();
-        switch(_status.sample()){
-            case "pristine":
-            case "fulfilled":
-                return data;
-            case "rejected":
-                return exception;
-        }
-    });
-    const data = computed(_data);
-    const aborted = computed(_aborted);
-    const args = computed(_args);
-    const abort = ()=>{
-        if (!status.sample().pending) return;
-        logEvent(name, "ABORT");
-        batch(()=>{
-            _status(lastStatus());
-            _aborted({});
+const HostLobby = (0, _spredDom.component)(()=>{
+    return (0, _spredDom.h)(()=>{
+        (0, _spredDom.h)("h1", {
+            text: "Новая Игра"
         });
-        counter++;
-    };
-    const reset = ()=>{
-        if (status.sample().pristine) return;
-        logEvent(name, "RESET");
-        batch(()=>{
-            if (status().pending) _aborted({});
-            _status("pristine");
-        });
-        counter++;
-    };
-    const exec = (id, ...args)=>{
-        return asyncFn(...args).then((res)=>{
-            current = id;
-            return res;
-        }).catch((e)=>{
-            current = id;
-            throw e;
-        });
-    };
-    const call = (...args)=>{
-        logEvent(name, "CALL", args);
-        if (_status.sample() === "pending") _aborted({});
-        _args(args);
-        _status("pending");
-        return exec(++counter, ...args).then((v)=>{
-            if (current !== counter) return v;
-            batch(()=>{
-                _data(v);
-                _status("fulfilled");
-            });
-            return v;
-        }).catch((e)=>{
-            if (current !== counter) throw e;
-            batch(()=>{
-                _exception(e);
-                _status("rejected");
-            });
-            throw e;
-        });
-    };
-    if (name) {
-        named(data, name + ".data");
-        named(exception, name + ".exception");
-        named(done, name + ".done");
-        named(aborted, name + ".aborted");
-        named(args, name + ".args");
-        named(status, name + ".status");
-    }
-    return {
-        data,
-        exception,
-        done,
-        aborted,
-        args,
-        status,
-        call,
-        abort,
-        reset
-    };
-}
-function logEvent(effectName, eventName, payload) {
-    if (!effectName) return;
-    config._log(effectName, eventName, payload);
-}
-/**
- * Creates a computed signal that handles exceptions that occur during computations.
- * @param compute The function that calculates the signal value and returns it.
- * @param handle The function that handles an exception and returns the new signal value.
- * @returns Computed signal.
- */ function catcher(compute, handle) {
-    const getValue = isSignal(compute) ? compute : computed(compute);
-    const comp = computed((prevValue)=>{
-        const value = getValue();
-        const state = getValue._state;
-        if (state.hasException) return handle(state.exception, prevValue);
-        return value;
     });
-    comp._state.isCatcher = true;
-    return comp;
-}
-function createLogger(opts) {
-    const include = opts && opts.include;
-    const exclude = opts && opts.exclude;
-    function log(unitName, ...rest) {
-        console.log(`%c[${unitName}]%c`, "font-weight: bold", "font-weight: normal", ...rest);
-    }
-    function createLogFn() {
-        return (unitName, ...rest)=>{
-            let shouldLog = true;
-            if (include) shouldLog = include.includes(rest[0]);
-            if (exclude) shouldLog = shouldLog && !exclude.includes(rest[0]);
-            if (shouldLog) log(unitName, ...rest);
-        };
-    }
-    return createLogFn();
-}
+});
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"6YFso":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "PlayerController", ()=>PlayerController);
-var _spred = require("spred");
-var _action = require("../../common/action");
-var _clientType = require("../../common/client-type");
-var _gameStage = require("../../common/game-stage");
-var _gameController = require("./game-controller");
-class PlayerController extends (0, _gameController.GameController) {
-    player = (0, _spred.memo)(()=>this.state().players[this.playerId]);
-    constructor(roomId, playerId, playerName){
-        super((0, _clientType.ClientType).Player, roomId, playerId, playerName);
-    }
-    answer(card) {
-        const state = this.state();
-        if (!state || state.error || state.stage !== (0, _gameStage.GameStage).Question || !this.player().cards.includes(card)) return;
-        (0, _spred.batch)(()=>{
-            const answerIndex = this.state().answers.findIndex((answer)=>answer.playerId === this.playerId);
-            this._state.select("answers").update((answers)=>{
-                const answer = {
-                    playerId: this.playerId,
-                    card,
-                    votes: []
-                };
-                if (answerIndex > -1) answers[answerIndex] = answer;
-                else answers.push(answer);
-            });
-            this.makePlayerDone();
-        });
-        this.emitPlayerData(card);
-    }
-    vote(score) {
-        const state = this.state();
-        if (!state || state.error || state.stage !== (0, _gameStage.GameStage).Vote) return;
-        (0, _spred.batch)(()=>{
-            const answerIndex = this.state().answerIndex;
-            const answer = this.state().answers[answerIndex];
-            if (!answer || answer.playerId === this.playerId) return;
-            const voteIndex = answer.votes.findIndex((vote)=>vote.playerId === this.playerId);
-            this._state.select("answers").select(answerIndex).update("votes", (votes)=>{
-                const vote = {
-                    playerId: this.playerId,
-                    score
-                };
-                if (voteIndex > -1) votes[voteIndex] = vote;
-                else votes.push(vote);
-            });
-            this.makePlayerDone();
-        });
-        this.emitPlayerData(score);
-    }
-    ready() {
-        const state = this.state();
-        if (!state || state.error || state.stage !== (0, _gameStage.GameStage).Results) return;
-        this.makePlayerDone();
-        this.emitPlayerData();
-    }
-    emitPlayerData(payload) {
-        this.emit((0, _action.Action).PlayerData, payload);
-    }
-    makePlayerDone() {
-        this._state.select("players").update(this.playerId, (player)=>{
-            player.done = true;
-        });
-    }
-}
-
-},{"../../common/action":"1JFEc","../../common/client-type":"4iKJW","../../common/game-stage":"4owkS","./game-controller":"5xcef","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","spred":"7ewWT"}]},["47WRQ","3kePc"], "3kePc", "parcelRequirecd33")
+},{"spred-dom":"dR8Fz","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["47WRQ","3kePc"], "3kePc", "parcelRequirecd33")
 
 //# sourceMappingURL=index.e4c659bf.js.map

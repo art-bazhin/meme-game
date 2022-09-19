@@ -5,7 +5,9 @@ import { GameStage } from '../../common/game-stage';
 import { GameController } from './game-controller';
 
 export class PlayerController extends GameController {
-  public player = memo(() => this.state().players[this.playerId]);
+  private readonly answers = this._state.select('answers');
+
+  public readonly player = memo(() => this.state().players[this.playerId]);
 
   constructor(roomId: string, playerId: string, playerName: string) {
     super(ClientType.Player, roomId, playerId, playerName);
@@ -57,18 +59,15 @@ export class PlayerController extends GameController {
         (vote) => vote.playerId === this.playerId
       );
 
-      this._state
-        .select('answers')
-        .select(answerIndex)
-        .update('votes', (votes) => {
-          const vote = {
-            playerId: this.playerId,
-            score,
-          };
+      this.answers.select(answerIndex).update('votes', (votes) => {
+        const vote = {
+          playerId: this.playerId,
+          score,
+        };
 
-          if (voteIndex > -1) votes[voteIndex] = vote;
-          else votes.push(vote);
-        });
+        if (voteIndex > -1) votes[voteIndex] = vote;
+        else votes.push(vote);
+      });
 
       this.makePlayerDone();
     });

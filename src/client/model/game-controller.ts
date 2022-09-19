@@ -1,8 +1,7 @@
 import { io, Socket } from 'socket.io-client';
-import { computed, memo, signal, Signal, store, writable } from 'spred';
+import { computed, memo, store, writable } from 'spred';
 import { Action } from '../../common/action';
 import { ClientType } from '../../common/client-type';
-import { RoomError } from '../../common/room-error';
 import { RoomState } from '../../common/room-state';
 
 const isLocalHost = location.origin === 'http://localhost:1234';
@@ -19,7 +18,7 @@ export class GameController {
   protected readonly _state = store<RoomState>({ loading: true } as RoomState);
   public readonly state = computed(this._state);
 
-  public readonly loading = memo(() => this.state().loading);
+  public readonly loading = memo(() => this.state().loading || false);
   public readonly stage = memo(() => this.state().stage);
   public readonly error = memo(() => this.state().error);
 
