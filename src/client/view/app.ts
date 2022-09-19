@@ -1,8 +1,8 @@
 import { component, h, node } from 'spred-dom';
 import { route } from '../model/routing';
-import { HostView } from './host-view/host-view';
-import { MainView } from './main-view/main-view';
-import { PlayerView } from './player-view/player-view';
+import { HostView } from './components/host-view/host-view';
+import { MainView } from './components/main-view/main-view';
+import { PlayerView } from './components/player-view/player-view';
 
 export const App = component(() => {
   return h(() => {

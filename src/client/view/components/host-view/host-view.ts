@@ -1,11 +1,11 @@
 import * as css from './host-view.module.scss';
 
-import { component, h, node, text } from 'spred-dom';
+import { component, h, node } from 'spred-dom';
 import { computed } from 'spred';
-import { HostController } from 'client/model/host-controller';
-import { roomId } from 'client/model/routing';
-import { HostLobby } from 'client/view/components/host-lobby/host-lobby';
-import { LoadingScreen } from 'client/view/ui/loading-screen/loading-screen';
+import { HostController } from '../../../model/host-controller';
+import { roomId } from '../../../model/routing';
+import { HostLobby } from '../host-lobby/host-lobby';
+import { LoadingScreen } from '../../ui/loading-screen/loading-screen';
 
 export const HostView = component(() => {
   const controllerSignal = computed(() => new HostController(roomId()));

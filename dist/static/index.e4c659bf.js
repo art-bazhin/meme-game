@@ -542,9 +542,9 @@ parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "App", ()=>App);
 var _spredDom = require("spred-dom");
 var _routing = require("../model/routing");
-var _hostView = require("./host-view/host-view");
-var _mainView = require("./main-view/main-view");
-var _playerView = require("./player-view/player-view");
+var _hostView = require("./components/host-view/host-view");
+var _mainView = require("./components/main-view/main-view");
+var _playerView = require("./components/player-view/player-view");
 const App = (0, _spredDom.component)(()=>{
     return (0, _spredDom.h)(()=>{
         (0, _spredDom.node)(()=>{
@@ -560,7 +560,7 @@ const App = (0, _spredDom.component)(()=>{
     });
 });
 
-},{"spred-dom":"dR8Fz","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","../model/routing":"8aT8g","./main-view/main-view":"89w9c","./player-view/player-view":"hfveM","./host-view/host-view":"ckeGd"}],"dR8Fz":[function(require,module,exports) {
+},{"spred-dom":"dR8Fz","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./components/host-view/host-view":"0A4D3","./components/main-view/main-view":"6eCn6","./components/player-view/player-view":"iTlax","../model/routing":"8aT8g"}],"dR8Fz":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "classes", ()=>classes);
@@ -1998,192 +1998,17 @@ exports.export = function(dest, destName, get) {
     });
 };
 
-},{}],"8aT8g":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "route", ()=>route);
-parcelHelpers.export(exports, "roomId", ()=>roomId);
-var _spred = require("spred");
-const hash = (0, _spred.writable)(location.hash);
-const tuple = (0, _spred.computed)(()=>hash().split("/"));
-window.addEventListener("hashchange", ()=>{
-    hash(location.hash);
-});
-const route = (0, _spred.memo)(()=>{
-    const str = tuple()[0];
-    if (str === "#play") return "PLAY";
-    else if (str === "#host") return "HOST";
-    return "MAIN";
-});
-const roomId = (0, _spred.memo)(()=>tuple()[1]);
-
-},{"spred":"7ewWT","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"89w9c":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "MainView", ()=>MainView);
-var _mainViewModuleScss = require("./main-view.module.scss");
-var _spredDom = require("spred-dom");
-var _logo = require("../logo/logo");
-var _startLink = require("../start-link/start-link");
-const MainView = (0, _spredDom.component)(()=>(0, _spredDom.h)("div", {
-        class: _mainViewModuleScss.container
-    }, ()=>{
-        (0, _logo.logo)();
-        (0, _spredDom.h)("div", {
-            class: _mainViewModuleScss.menu
-        }, ()=>{
-            (0, _startLink.startLink)();
-        });
-    }));
-
-},{"./main-view.module.scss":"8R0yM","spred-dom":"dR8Fz","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","../logo/logo":"7r2rk","../start-link/start-link":"k1jC4"}],"8R0yM":[function(require,module,exports) {
-module.exports["menu"] = `-7AyLG_menu`;
-module.exports["container"] = `-7AyLG_container`;
-
-},{}],"7r2rk":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "Logo", ()=>Logo);
-parcelHelpers.export(exports, "logo", ()=>logo);
-var _logoModuleScss = require("./logo.module.scss");
-var _spredDom = require("spred-dom");
-const Logo = (0, _spredDom.component)(()=>(0, _spredDom.h)("h1", {
-        class: _logoModuleScss.logo
-    }, ()=>{
-        (0, _spredDom.h)("span", {
-            class: _logoModuleScss.top
-        }, ()=>{
-            (0, _spredDom.h)("span", {
-                text: "С"
-            });
-            (0, _spredDom.h)("span", {
-                text: "О"
-            });
-            (0, _spredDom.h)("span", {
-                text: "Б"
-            });
-            (0, _spredDom.h)("span", {
-                text: "Е"
-            });
-            (0, _spredDom.h)("span", {
-                text: "Р"
-            });
-            (0, _spredDom.h)("span", {
-                text: "И"
-            });
-        });
-        (0, _spredDom.h)("span", {
-            class: _logoModuleScss.bottom
-        }, ()=>{
-            (0, _spredDom.h)("span", {
-                text: "М"
-            });
-            (0, _spredDom.h)("span", {
-                text: "Е"
-            });
-            (0, _spredDom.h)("span", {
-                text: "М"
-            });
-        });
-    }));
-const logo = (0, _spredDom.templateFn)(Logo);
-
-},{"./logo.module.scss":"lJIMd","spred-dom":"dR8Fz","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"lJIMd":[function(require,module,exports) {
-module.exports["logo"] = `_5cxt3G_logo`;
-module.exports["top"] = `_5cxt3G_top`;
-module.exports["bottom"] = `_5cxt3G_bottom`;
-
-},{}],"k1jC4":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "StartLink", ()=>StartLink);
-parcelHelpers.export(exports, "startLink", ()=>startLink);
-var _nanoid = require("nanoid");
-var _spredDom = require("spred-dom");
-var _button = require("../ui/button/button");
-const StartLink = (0, _spredDom.component)(()=>{
-    const url = "#host/" + (0, _nanoid.nanoid)();
-    return (0, _spredDom.h)(()=>(0, _button.buttonLink)({
-            href: ()=>url,
-            text: ()=>"Создать Игру"
-        }));
-});
-const startLink = (0, _spredDom.templateFn)(StartLink);
-
-},{"nanoid":"2ifus","spred-dom":"dR8Fz","../ui/button/button":"6oMMs","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"2ifus":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "urlAlphabet", ()=>(0, _indexJs.urlAlphabet));
-parcelHelpers.export(exports, "random", ()=>random);
-parcelHelpers.export(exports, "customRandom", ()=>customRandom);
-parcelHelpers.export(exports, "customAlphabet", ()=>customAlphabet);
-parcelHelpers.export(exports, "nanoid", ()=>nanoid);
-var _indexJs = require("./url-alphabet/index.js");
-let random = (bytes)=>crypto.getRandomValues(new Uint8Array(bytes));
-let customRandom = (alphabet, defaultSize, getRandom)=>{
-    let mask = (2 << Math.log(alphabet.length - 1) / Math.LN2) - 1;
-    let step = -~(1.6 * mask * defaultSize / alphabet.length);
-    return (size = defaultSize)=>{
-        let id = "";
-        while(true){
-            let bytes = getRandom(step);
-            let j = step;
-            while(j--){
-                id += alphabet[bytes[j] & mask] || "";
-                if (id.length === size) return id;
-            }
-        }
-    };
-};
-let customAlphabet = (alphabet, size = 21)=>customRandom(alphabet, size, random);
-let nanoid = (size = 21)=>crypto.getRandomValues(new Uint8Array(size)).reduce((id, byte)=>{
-        byte &= 63;
-        if (byte < 36) id += byte.toString(36);
-        else if (byte < 62) id += (byte - 26).toString(36).toUpperCase();
-        else if (byte > 62) id += "-";
-        else id += "_";
-        return id;
-    }, "");
-
-},{"./url-alphabet/index.js":false,"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"6oMMs":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "ButtonLink", ()=>ButtonLink);
-parcelHelpers.export(exports, "buttonLink", ()=>buttonLink);
-var _buttonModuleScss = require("./button.module.scss");
-var _spredDom = require("spred-dom");
-const ButtonLink = (0, _spredDom.component)(({ href , text  })=>{
-    return (0, _spredDom.h)("a", {
-        href,
-        text,
-        class: _buttonModuleScss.button
-    });
-});
-const buttonLink = (0, _spredDom.templateFn)(ButtonLink);
-
-},{"./button.module.scss":"5iHvX","spred-dom":"dR8Fz","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"5iHvX":[function(require,module,exports) {
-module.exports["button"] = `rYiXjW_button`;
-
-},{}],"hfveM":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "PlayerView", ()=>PlayerView);
-var _spredDom = require("spred-dom");
-const PlayerView = (0, _spredDom.component)(()=>{
-    return (0, _spredDom.h)("div");
-});
-
-},{"spred-dom":"dR8Fz","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"ckeGd":[function(require,module,exports) {
+},{}],"0A4D3":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "HostView", ()=>HostView);
 var _hostViewModuleScss = require("./host-view.module.scss");
 var _spredDom = require("spred-dom");
 var _spred = require("spred");
-var _hostController = require("../../model/host-controller");
-var _routing = require("../../model/routing");
+var _hostController = require("../../../model/host-controller");
+var _routing = require("../../../model/routing");
 var _hostLobby = require("../host-lobby/host-lobby");
-var _loadingScreen = require("../ui/loading-screen/loading-screen");
+var _loadingScreen = require("../../ui/loading-screen/loading-screen");
 const HostView = (0, _spredDom.component)(()=>{
     const controllerSignal = (0, _spred.computed)(()=>new (0, _hostController.HostController)((0, _routing.roomId)()));
     const state = (0, _spred.computed)(()=>controllerSignal().state());
@@ -2199,8 +2024,8 @@ const HostView = (0, _spredDom.component)(()=>{
     });
 });
 
-},{"./host-view.module.scss":"clTeg","spred-dom":"dR8Fz","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","spred":"7ewWT","../../model/host-controller":"28P4X","../../model/routing":"8aT8g","../ui/loading-screen/loading-screen":"dzgPb","../host-lobby/host-lobby":"ejhMH"}],"clTeg":[function(require,module,exports) {
-module.exports["container"] = `lZpstG_container`;
+},{"./host-view.module.scss":"hnNtr","spred-dom":"dR8Fz","spred":"7ewWT","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","../../../model/host-controller":"28P4X","../../../model/routing":"8aT8g","../host-lobby/host-lobby":"3tueq","../../ui/loading-screen/loading-screen":"dzgPb"}],"hnNtr":[function(require,module,exports) {
+module.exports["container"] = `sCXHnG_container`;
 
 },{}],"28P4X":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
@@ -6896,7 +6721,46 @@ function Backoff(opts) {
     this.jitter = jitter;
 };
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"dzgPb":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"8aT8g":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "route", ()=>route);
+parcelHelpers.export(exports, "roomId", ()=>roomId);
+var _spred = require("spred");
+const hash = (0, _spred.writable)(location.hash);
+const tuple = (0, _spred.computed)(()=>hash().split("/"));
+window.addEventListener("hashchange", ()=>{
+    hash(location.hash);
+});
+const route = (0, _spred.memo)(()=>{
+    const str = tuple()[0];
+    if (str === "#play") return "PLAY";
+    else if (str === "#host") return "HOST";
+    return "MAIN";
+});
+const roomId = (0, _spred.memo)(()=>tuple()[1]);
+
+},{"spred":"7ewWT","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"3tueq":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "HostLobby", ()=>HostLobby);
+var _spredDom = require("spred-dom");
+const Lobby = (0, _spredDom.component)(()=>{
+    return (0, _spredDom.h)(()=>{
+        (0, _spredDom.h)("h1", {
+            text: "Новая Игра"
+        });
+    });
+});
+const HostLobby = (0, _spredDom.component)(()=>{
+    return (0, _spredDom.h)(()=>{
+        (0, _spredDom.h)("h1", {
+            text: "Новая Игра"
+        });
+    });
+});
+
+},{"spred-dom":"dR8Fz","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"dzgPb":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "LoadingScreen", ()=>LoadingScreen);
@@ -6927,30 +6791,166 @@ const LoadingScreen = (0, _spredDom.component)(()=>(0, _spredDom.h)("div", {
 },{"./loading-screen.module.scss":"lYmeo","spred-dom":"dR8Fz","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"lYmeo":[function(require,module,exports) {
 module.exports["dot1"] = `bbT0CG_dot1`;
 module.exports["dot1"];
+module.exports["loading"] = `bbT0CG_loading`;
 module.exports["dot3"] = `bbT0CG_dot3`;
 module.exports["dot3"];
-module.exports["loading"] = `bbT0CG_loading`;
 module.exports["dot2"] = `bbT0CG_dot2`;
 module.exports["dot2"];
 
-},{}],"ejhMH":[function(require,module,exports) {
+},{}],"6eCn6":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "HostLobby", ()=>HostLobby);
+parcelHelpers.export(exports, "MainView", ()=>MainView);
+var _mainViewModuleScss = require("./main-view.module.scss");
 var _spredDom = require("spred-dom");
-const Lobby = (0, _spredDom.component)(()=>{
-    return (0, _spredDom.h)(()=>{
-        (0, _spredDom.h)("h1", {
-            text: "Новая Игра"
+var _logo = require("../logo/logo");
+var _startLink = require("../start-link/start-link");
+const MainView = (0, _spredDom.component)(()=>(0, _spredDom.h)("div", {
+        class: _mainViewModuleScss.container
+    }, ()=>{
+        (0, _logo.logo)();
+        (0, _spredDom.h)("div", {
+            class: _mainViewModuleScss.menu
+        }, ()=>{
+            (0, _startLink.startLink)();
         });
+    }));
+
+},{"./main-view.module.scss":"89rv2","spred-dom":"dR8Fz","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","../logo/logo":"bYpLl","../start-link/start-link":"gqOEn"}],"89rv2":[function(require,module,exports) {
+module.exports["container"] = `_vR06G_container`;
+module.exports["menu"] = `_vR06G_menu`;
+
+},{}],"bYpLl":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "Logo", ()=>Logo);
+parcelHelpers.export(exports, "logo", ()=>logo);
+var _logoModuleScss = require("./logo.module.scss");
+var _spredDom = require("spred-dom");
+const Logo = (0, _spredDom.component)(()=>(0, _spredDom.h)("h1", {
+        class: _logoModuleScss.logo
+    }, ()=>{
+        (0, _spredDom.h)("span", {
+            class: _logoModuleScss.top
+        }, ()=>{
+            (0, _spredDom.h)("span", {
+                text: "С"
+            });
+            (0, _spredDom.h)("span", {
+                text: "О"
+            });
+            (0, _spredDom.h)("span", {
+                text: "Б"
+            });
+            (0, _spredDom.h)("span", {
+                text: "Е"
+            });
+            (0, _spredDom.h)("span", {
+                text: "Р"
+            });
+            (0, _spredDom.h)("span", {
+                text: "И"
+            });
+        });
+        (0, _spredDom.h)("span", {
+            class: _logoModuleScss.bottom
+        }, ()=>{
+            (0, _spredDom.h)("span", {
+                text: "М"
+            });
+            (0, _spredDom.h)("span", {
+                text: "Е"
+            });
+            (0, _spredDom.h)("span", {
+                text: "М"
+            });
+        });
+    }));
+const logo = (0, _spredDom.templateFn)(Logo);
+
+},{"./logo.module.scss":"fnMOu","spred-dom":"dR8Fz","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"fnMOu":[function(require,module,exports) {
+module.exports["logo"] = `UGpjbW_logo`;
+module.exports["top"] = `UGpjbW_top`;
+module.exports["bottom"] = `UGpjbW_bottom`;
+
+},{}],"gqOEn":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "StartLink", ()=>StartLink);
+parcelHelpers.export(exports, "startLink", ()=>startLink);
+var _nanoid = require("nanoid");
+var _spredDom = require("spred-dom");
+var _button = require("../../ui/button/button");
+const StartLink = (0, _spredDom.component)(()=>{
+    const url = "#host/" + (0, _nanoid.nanoid)();
+    return (0, _spredDom.h)(()=>(0, _button.buttonLink)({
+            href: ()=>url,
+            text: ()=>"Создать Игру"
+        }));
+});
+const startLink = (0, _spredDom.templateFn)(StartLink);
+
+},{"nanoid":"2ifus","spred-dom":"dR8Fz","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","../../ui/button/button":"6oMMs"}],"2ifus":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "urlAlphabet", ()=>(0, _indexJs.urlAlphabet));
+parcelHelpers.export(exports, "random", ()=>random);
+parcelHelpers.export(exports, "customRandom", ()=>customRandom);
+parcelHelpers.export(exports, "customAlphabet", ()=>customAlphabet);
+parcelHelpers.export(exports, "nanoid", ()=>nanoid);
+var _indexJs = require("./url-alphabet/index.js");
+let random = (bytes)=>crypto.getRandomValues(new Uint8Array(bytes));
+let customRandom = (alphabet, defaultSize, getRandom)=>{
+    let mask = (2 << Math.log(alphabet.length - 1) / Math.LN2) - 1;
+    let step = -~(1.6 * mask * defaultSize / alphabet.length);
+    return (size = defaultSize)=>{
+        let id = "";
+        while(true){
+            let bytes = getRandom(step);
+            let j = step;
+            while(j--){
+                id += alphabet[bytes[j] & mask] || "";
+                if (id.length === size) return id;
+            }
+        }
+    };
+};
+let customAlphabet = (alphabet, size = 21)=>customRandom(alphabet, size, random);
+let nanoid = (size = 21)=>crypto.getRandomValues(new Uint8Array(size)).reduce((id, byte)=>{
+        byte &= 63;
+        if (byte < 36) id += byte.toString(36);
+        else if (byte < 62) id += (byte - 26).toString(36).toUpperCase();
+        else if (byte > 62) id += "-";
+        else id += "_";
+        return id;
+    }, "");
+
+},{"./url-alphabet/index.js":false,"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"6oMMs":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "ButtonLink", ()=>ButtonLink);
+parcelHelpers.export(exports, "buttonLink", ()=>buttonLink);
+var _buttonModuleScss = require("./button.module.scss");
+var _spredDom = require("spred-dom");
+const ButtonLink = (0, _spredDom.component)(({ href , text  })=>{
+    return (0, _spredDom.h)("a", {
+        href,
+        text,
+        class: _buttonModuleScss.button
     });
 });
-const HostLobby = (0, _spredDom.component)(()=>{
-    return (0, _spredDom.h)(()=>{
-        (0, _spredDom.h)("h1", {
-            text: "Новая Игра"
-        });
-    });
+const buttonLink = (0, _spredDom.templateFn)(ButtonLink);
+
+},{"./button.module.scss":"5iHvX","spred-dom":"dR8Fz","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"5iHvX":[function(require,module,exports) {
+module.exports["button"] = `rYiXjW_button`;
+
+},{}],"iTlax":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "PlayerView", ()=>PlayerView);
+var _spredDom = require("spred-dom");
+const PlayerView = (0, _spredDom.component)(()=>{
+    return (0, _spredDom.h)("div");
 });
 
 },{"spred-dom":"dR8Fz","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["47WRQ","3kePc"], "3kePc", "parcelRequirecd33")
