@@ -4,7 +4,7 @@ body {
   height: 100%;
   overflow: hidden;
   font-size: 16px;
-  line-height: 1.2;
+  line-height: 1.25;
   font-family: 'Montserrat', sans-serif;
 
   * {
@@ -14,10 +14,23 @@ body {
 
 h1 {
   margin: 0;
+  text-align: center;
   text-transform: uppercase;
   color: $c-primary;
 
   @media ($wide) {
-    font-size: 6vh;
+    font-size: 8vh;
+    margin-bottom: 6vh;
+  }
+}
+
+h2 {
+  margin: 0;
+  text-transform: uppercase;
+  text-align: center;
+
+  @media ($wide) {
+    font-size: 5vh;
+    margin-bottom: 3vh;
   }
 }

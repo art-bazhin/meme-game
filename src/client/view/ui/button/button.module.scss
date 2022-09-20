@@ -1,6 +1,7 @@
 @import 'src/client/view/style/constants.scss';
 
 .button {
+  border: none;
   text-transform: uppercase;
   background-color: $c-primary;
   color: $c-background;
@@ -10,6 +11,7 @@
   font-size: 24px;
   padding: 9px 18px;
   border-radius: 6px;
+  transition: background-color 0.1s ease-in-out, opacity 0.1s ease-in-out;
 
   &:hover {
     background-color: $c-primary-dark;
@@ -20,4 +22,9 @@
     padding: 1.5vh 3vh;
     border-radius: 1vh;
   }
+}
+
+.disabled {
+  pointer-events: none;
+  opacity: 0.5;
 }

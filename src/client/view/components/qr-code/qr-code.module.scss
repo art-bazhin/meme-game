@@ -1,0 +1,13 @@
+@import 'src/client/view/style/constants.scss';
+
+.qrCode {
+  display: block;
+  width: 100%;
+  font-size: 0;
+}
+
+.qrCode svg {
+  fill: $c-secondary;
+  display: block;
+  width: 100%;
+}

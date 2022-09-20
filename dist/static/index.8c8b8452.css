@@ -1,15 +1,110 @@
 .sCXHnG_container {
   height: 100vh;
-  text-align: center;
   width: 100%;
+  flex-direction: column;
   margin: 0 auto;
-  display: block;
+  display: flex;
 }
 
 @media ((min-width: 768px)) {
   .sCXHnG_container {
-    padding: 5vh;
+    max-width: 150vh;
+    padding: 8vh;
   }
+}
+
+.hD0OlW_rowWrap {
+  flex-direction: column;
+  flex-grow: 1;
+  justify-content: center;
+  display: flex;
+}
+
+.hD0OlW_row {
+  flex-direction: row;
+  flex-shrink: 0;
+  flex-basis: content;
+  margin-left: -4vh;
+  margin-right: -4vh;
+  display: flex;
+}
+
+.hD0OlW_col {
+  padding-left: 4vh;
+  padding-right: 4vh;
+}
+
+.hD0OlW_qrc {
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.hD0OlW_infoCol {
+  flex-direction: column;
+  flex-grow: 1;
+  justify-content: space-between;
+  display: flex;
+}
+
+.hD0OlW_buttonWrap {
+  text-align: center;
+  padding-top: 4vh;
+}
+
+.hD0OlW_buttonWrap button {
+  width: 100%;
+}
+
+.c8l6sa_qrCode {
+  width: 100%;
+  font-size: 0;
+  display: block;
+}
+
+.c8l6sa_qrCode svg {
+  fill: #3f7685;
+  width: 100%;
+  display: block;
+}
+
+.rYiXjW_button {
+  text-transform: uppercase;
+  color: #f3f3f3;
+  cursor: pointer;
+  background-color: #605096;
+  border: none;
+  border-radius: 6px;
+  padding: 9px 18px;
+  font-size: 24px;
+  text-decoration: none;
+  transition: background-color .1s ease-in-out, opacity .1s ease-in-out;
+  display: inline-block;
+}
+
+.rYiXjW_button:hover {
+  background-color: #4f427b;
+}
+
+@media ((min-width: 768px)) {
+  .rYiXjW_button {
+    border-radius: 1vh;
+    padding: 1.5vh 3vh;
+    font-size: 4vh;
+  }
+}
+
+.rYiXjW_disabled {
+  pointer-events: none;
+  opacity: .5;
+}
+
+.gKNX7W_playersList {
+  font-size: 4vh;
+}
+
+.gKNX7W_noPlayers {
+  color: #adadad;
+  text-align: center;
 }
 
 .bbT0CG_loading {
@@ -74,6 +169,24 @@
   }
 }
 
+.ZMux3W_caption {
+  text-align: center;
+  margin: 0;
+  font-size: 7vh;
+}
+
+.ZMux3W_captionWrap {
+  flex-direction: column;
+  flex-grow: 1;
+  justify-content: center;
+  display: flex;
+}
+
+.ZMux3W_playersDone {
+  min-height: 10vh;
+  margin-top: 6vh;
+}
+
 ._vR06G_container {
   height: 100vh;
   text-align: center;
@@ -114,7 +227,7 @@
 }
 
 .UGpjbW_top {
-  color: #634fa2;
+  color: #605096;
   flex-direction: row;
   justify-content: space-between;
   margin: 0 .1em;
@@ -130,7 +243,7 @@
 }
 
 .UGpjbW_bottom {
-  color: #54808c;
+  color: #3f7685;
   flex-direction: row;
   justify-content: space-between;
   font-size: 115px;
@@ -141,30 +254,6 @@
 @media ((min-width: 768px)) {
   .UGpjbW_bottom {
     font-size: 35vmin;
-  }
-}
-
-.rYiXjW_button {
-  text-transform: uppercase;
-  color: #f3f3f3;
-  cursor: pointer;
-  background-color: #634fa2;
-  border-radius: 6px;
-  padding: 9px 18px;
-  font-size: 24px;
-  text-decoration: none;
-  display: inline-block;
-}
-
-.rYiXjW_button:hover {
-  background-color: #4e3e80;
-}
-
-@media ((min-width: 768px)) {
-  .rYiXjW_button {
-    border-radius: 1vh;
-    padding: 1.5vh 3vh;
-    font-size: 4vh;
   }
 }
 

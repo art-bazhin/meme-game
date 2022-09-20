@@ -1,0 +1,43 @@
+@import 'src/client/view/style/constants.scss';
+
+.rowWrap {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex-grow: 1;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  margin-left: -4vh;
+  margin-right: -4vh;
+  flex-shrink: 0;
+  flex-basis: content;
+}
+
+.col {
+  padding-left: 4vh;
+  padding-right: 4vh;
+}
+
+.qrc {
+  flex-basis: 50%;
+  flex-shrink: 0;
+}
+
+.infoCol {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.buttonWrap {
+  padding-top: 4vh;
+  text-align: center;
+
+  button {
+    width: 100%;
+  }
+}

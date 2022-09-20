@@ -1,8 +1,9 @@
-import { io, Socket } from 'socket.io-client';
 import { computed, memo, store, writable } from 'spred';
+import { io, Socket } from 'socket.io-client';
 import { Action } from '../../common/action';
 import { ClientType } from '../../common/client-type';
 import { RoomState } from '../../common/room-state';
+import { getPlayLink } from './routing';
 
 const isLocalHost = location.origin === 'http://localhost:1234';
 
@@ -18,6 +19,9 @@ export class GameController {
   protected readonly _state = store<RoomState>({ loading: true } as RoomState);
   public readonly state = computed(this._state);
 
+  public readonly roomId = memo(() => this.state().id);
+  public readonly playLink = memo(() => getPlayLink(this.roomId()));
+
   public readonly loading = memo(() => this.state().loading || false);
   public readonly stage = memo(() => this.state().stage);
   public readonly error = memo(() => this.state().error);
@@ -29,7 +33,7 @@ export class GameController {
     return currentAnswer ? currentAnswer.card : '';
   });
 
-  public readonly playerList = computed(() => {
+  public readonly playersList = computed(() => {
     const players = this.state().players;
     const ids = Object.keys(players);
 
@@ -37,7 +41,7 @@ export class GameController {
   });
 
   public readonly sortedPlayerList = computed(() => {
-    const list = this.playerList().slice();
+    const list = this.playersList().slice();
     list.sort((a, b) => a.score - b.score);
 
     return list;

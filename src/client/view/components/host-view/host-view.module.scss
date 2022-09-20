@@ -3,11 +3,14 @@
 .container {
   height: 100vh;
   display: block;
-  text-align: center;
   margin: 0 auto;
   width: 100%;
 
   @media ($wide) {
-    padding: 5vh;
+    padding: 8vh;
+    max-width: 150vh;
   }
+
+  display: flex;
+  flex-direction: column;
 }

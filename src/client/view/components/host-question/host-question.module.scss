@@ -1,0 +1,26 @@
+@import 'src/client/view/style/constants.scss';
+
+.caption {
+  margin: 0;
+  font-size: 7vh;
+  text-align: center;
+}
+
+.captionWrap {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex-grow: 1;
+}
+
+.captionWrap {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex-grow: 1;
+}
+
+.playersDone {
+  min-height: 10vh;
+  margin-top: 6vh;
+}

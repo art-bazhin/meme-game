@@ -6,6 +6,7 @@ import { GameController } from './game-controller';
 
 export class PlayerController extends GameController {
   private readonly answers = this._state.select('answers');
+  private readonly players = this._state.select('players');
 
   public readonly player = memo(() => this.state().players[this.playerId]);
 
@@ -88,7 +89,7 @@ export class PlayerController extends GameController {
   }
 
   private makePlayerDone() {
-    this._state.select('players').update(this.playerId, (player) => {
+    this.players.update(this.playerId, (player) => {
       player.done = true;
     });
   }

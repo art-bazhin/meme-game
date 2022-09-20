@@ -1,0 +1,10 @@
+@import 'src/client/view/style/constants.scss';
+
+.playersList {
+  font-size: 4vh;
+}
+
+.noPlayers {
+  color: $c-foreground-light;
+  text-align: center;
+}

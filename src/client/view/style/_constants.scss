@@ -1,10 +1,12 @@
 /* COLORS */
 
 $c-background: #f3f3f3;
-$c-foreground: #0d0d0d;
-$c-primary: #634fa2;
-$c-primary-dark: darken($c-primary, 10%);
-$c-secondary: #54808c;
+$c-foreground: #2d2d2d;
+$c-foreground-light: lighten($c-foreground, 50%);
+$c-primary: #605096;
+$c-primary-dark: darken($c-primary, 8%);
+$c-secondary: #3f7685;
+$c-secondary-dark: darken($c-secondary, 8%);
 
 /* MEDIA */
 

@@ -153,12 +153,12 @@ template, [hidden] {
 }
 
 body {
-  color: #0d0d0d;
+  color: #2d2d2d;
   height: 100%;
   background-color: #f3f3f3;
   font-family: Montserrat, sans-serif;
   font-size: 16px;
-  line-height: 1.2;
+  line-height: 1.25;
   overflow: hidden;
 }
 
@@ -167,19 +167,35 @@ body * {
 }
 
 h1 {
+  text-align: center;
   text-transform: uppercase;
-  color: #634fa2;
+  color: #605096;
   margin: 0;
 }
 
 @media ((min-width: 768px)) {
   h1 {
-    font-size: 6vh;
+    margin-bottom: 6vh;
+    font-size: 8vh;
   }
 }
 
-.test {
-  font-weight: bold;
+h2 {
+  text-transform: uppercase;
+  text-align: center;
+  margin: 0;
+}
+
+@media ((min-width: 768px)) {
+  h2 {
+    margin-bottom: 3vh;
+    font-size: 5vh;
+  }
+}
+
+.row {
+  flex-direction: column;
+  display: flex;
 }
 
 /*# sourceMappingURL=index.542fe1cc.css.map */

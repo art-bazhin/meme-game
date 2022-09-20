@@ -5,7 +5,12 @@ import { buttonLink } from '../../ui/button/button';
 const StartLink = component(() => {
   const url = '#host/' + nanoid();
 
-  return h(() => buttonLink({ href: () => url, text: () => 'Создать Игру' }));
+  return h(() =>
+    buttonLink({
+      href: () => url,
+      text: () => 'Создать Комнату',
+    })
+  );
 });
 
 const startLink = templateFn(StartLink);

@@ -181,7 +181,8 @@ export class Room {
 
         this.questions.push(question);
         this.question = question.ru;
-        this.round = this.round === this.maxRounds ? 0 : this.round + 1;
+        this.round =
+          this.maxRounds && this.round === this.maxRounds ? 0 : this.round + 1;
 
         break;
 

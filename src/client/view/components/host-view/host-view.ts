@@ -6,13 +6,12 @@ import { HostController } from '../../../model/host-controller';
 import { roomId } from '../../../model/routing';
 import { HostLobby } from '../host-lobby/host-lobby';
 import { LoadingScreen } from '../../ui/loading-screen/loading-screen';
+import { GameStage } from '../../../../common/game-stage';
+import { HostQuestion } from '../host-question/host-question';
 
 export const HostView = component(() => {
   const controllerSignal = computed(() => new HostController(roomId()));
-
   const state = computed(() => controllerSignal().state());
-
-  state.subscribe((value) => console.log(value));
 
   return h('div', { class: css.container }, () => {
     node(() => {
@@ -22,7 +21,15 @@ export const HostView = component(() => {
         return LoadingScreen();
       }
 
-      return HostLobby();
+      switch (controller.stage()) {
+        case GameStage.Lobby:
+          return HostLobby(controller);
+
+        case GameStage.Question:
+          return HostQuestion(controller);
+      }
+
+      return LoadingScreen();
     });
   });
 });
