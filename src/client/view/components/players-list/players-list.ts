@@ -2,16 +2,16 @@ import * as css from './players-list.module.scss';
 
 import { component, h, templateFn } from 'spred-dom';
 import { Player } from '../../../../common/player';
-import { memo } from 'spred';
+import { computed } from 'spred';
 
 interface PlayersListProps {
   players: () => Player[];
 }
 
 export const PlayersList = component(({ players }: PlayersListProps) => {
-  const hasNoPlayers = memo(() => !players().length);
+  const hasNoPlayers = computed(() => !players().length);
 
-  const text = memo(() => {
+  const text = computed(() => {
     if (hasNoPlayers()) return 'Пока что никто не\u00A0подключился';
     return players()
       .map((player) => player.name)

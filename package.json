@@ -5,10 +5,12 @@
   "browserslist": "> 0.5%, last 2 versions",
   "type": "module",
   "scripts": {
-    "dev:client": "parcel src/client/index.html --dist-dir ./dist/static",
+    "prebuild": "node prebuild.cjs",
     "build:client": "parcel build src/client/index.html --dist-dir ./dist/static",
+    "build:server": "npx tsc src/server/index.ts --outDir ./dist --target ES2020 --moduleResolution node --strict",
+    "build": "npm run prebuild & npm run build:server & npm run build:client",
+    "dev:client": "parcel src/client/index.html --dist-dir ./dist/static",
     "dev:server": "nodemon",
-    "build:server": "npx tsc src/server/index.ts --outDir ./dist",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Art Bazhin",
@@ -30,8 +32,8 @@
     "nanoid": "^4.0.0",
     "socket.io": "^4.5.2",
     "socket.io-client": "^4.5.2",
-    "spred": "^0.28.0",
-    "spred-dom": "^0.7.1"
+    "spred": "^0.31.1",
+    "spred-dom": "^0.7.3"
   },
   "browser": {
     "socket.io-client": "socket.io-client/dist/socket.io.js"

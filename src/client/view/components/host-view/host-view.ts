@@ -5,9 +5,10 @@ import { computed } from 'spred';
 import { HostController } from '../../../model/host-controller';
 import { roomId } from '../../../model/routing';
 import { HostLobby } from '../host-lobby/host-lobby';
-import { LoadingScreen } from '../../ui/loading-screen/loading-screen';
+import { LoadingScreen } from '../loading-screen/loading-screen';
 import { GameStage } from '../../../../common/game-stage';
 import { HostQuestion } from '../host-question/host-question';
+import { HostVote } from '../host-vote/host-vote';
 
 export const HostView = component(() => {
   const controllerSignal = computed(() => new HostController(roomId()));
@@ -27,6 +28,9 @@ export const HostView = component(() => {
 
         case GameStage.Question:
           return HostQuestion(controller);
+
+        case GameStage.Vote:
+          return HostVote(controller);
       }
 
       return LoadingScreen();

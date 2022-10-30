@@ -4,7 +4,7 @@ import { component, h } from 'spred-dom';
 import { qrCode } from '../qr-code/qr-code';
 import { HostController } from '../../../model/host-controller';
 import { playersList } from '../players-list/players-list';
-import { button } from '../../ui/button/button';
+import { button } from '../button/button';
 
 export const HostLobby = component((controller: HostController) => {
   return h(() => {

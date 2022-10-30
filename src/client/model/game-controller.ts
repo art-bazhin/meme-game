@@ -1,4 +1,4 @@
-import { computed, memo, store, writable } from 'spred';
+import { computed, store, writable } from 'spred';
 import { io, Socket } from 'socket.io-client';
 import { Action } from '../../common/action';
 import { ClientType } from '../../common/client-type';
@@ -14,23 +14,29 @@ export class GameController {
   protected playerId;
 
   private readonly _pending = writable(false);
-  public readonly pending = memo(this._pending);
+  public readonly pending = computed(this._pending);
 
   protected readonly _state = store<RoomState>({ loading: true } as RoomState);
   public readonly state = computed(this._state);
 
-  public readonly roomId = memo(() => this.state().id);
-  public readonly playLink = memo(() => getPlayLink(this.roomId()));
+  public readonly roomId = computed(() => this.state().id);
+  public readonly playLink = computed(() => getPlayLink(this.roomId()));
 
-  public readonly loading = memo(() => this.state().loading || false);
-  public readonly stage = memo(() => this.state().stage);
-  public readonly error = memo(() => this.state().error);
+  public readonly loading = computed(() => this.state().loading || false);
+  public readonly stage = computed(() => this.state().stage);
+  public readonly error = computed(() => this.state().error);
 
-  public readonly voteCard = memo(() => {
+  private readonly votedAnswer = computed(() => {
     const state = this.state();
-    const currentAnswer = state.answers[state.answerIndex];
+    return state.answers[state.answerIndex];
+  });
 
-    return currentAnswer ? currentAnswer.card : '';
+  public readonly votedCard = computed(() => {
+    return this.votedAnswer().card;
+  });
+
+  public readonly votes = computed(() => {
+    return this.votedAnswer().votes;
   });
 
   public readonly playersList = computed(() => {

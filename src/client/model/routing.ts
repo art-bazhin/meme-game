@@ -1,4 +1,4 @@
-import { computed, memo, writable } from 'spred';
+import { computed, writable } from 'spred';
 
 const PLAY_HASH = '#play';
 const HOST_HASH = '#host';
@@ -11,7 +11,7 @@ window.addEventListener('hashchange', () => {
   hash(location.hash);
 });
 
-export const route = memo(() => {
+export const route = computed(() => {
   const str = tuple()[0];
 
   if (str === PLAY_HASH) return 'PLAY';
@@ -19,7 +19,7 @@ export const route = memo(() => {
   return 'MAIN';
 });
 
-export const roomId = memo(() => tuple()[1]);
+export const roomId = computed(() => tuple()[1]);
 
 export function getPlayLink(roomId: string) {
   return location.origin + '/' + PLAY_HASH + DELIMITER + roomId;

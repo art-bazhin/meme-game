@@ -1,4 +1,4 @@
-import { batch, memo } from 'spred';
+import { batch, computed } from 'spred';
 import { Action } from '../../common/action';
 import { ClientType } from '../../common/client-type';
 import { GameStage } from '../../common/game-stage';
@@ -8,7 +8,7 @@ export class PlayerController extends GameController {
   private readonly answers = this._state.select('answers');
   private readonly players = this._state.select('players');
 
-  public readonly player = memo(() => this.state().players[this.playerId]);
+  public readonly player = computed(() => this.state().players[this.playerId]);
 
   constructor(roomId: string, playerId: string, playerName: string) {
     super(ClientType.Player, roomId, playerId, playerName);
