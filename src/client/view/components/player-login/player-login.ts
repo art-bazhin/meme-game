@@ -14,7 +14,6 @@ interface PlayerLoginProps {
 export const PlayerLogin = component(({ onLogin }: PlayerLoginProps) => {
   const playerId = withLocalStorage('PLAYER_ID', nanoid);
   const playerName = withLocalStorage('PLAYER_NAME', () => '');
-  const pending = writable(false);
 
   return h('div', { class: css.login }, () => {
     input({
@@ -24,11 +23,10 @@ export const PlayerLogin = component(({ onLogin }: PlayerLoginProps) => {
     });
 
     button({
-      text: () => (pending() ? 'Загрузка...' : 'Присоединиться'),
+      text: () => 'Присоединиться',
       className: () => css.button,
-      disabled: () => pending() || !playerName().length,
+      disabled: () => !playerName().length,
       onСlick: () => {
-        pending(true);
         onLogin({
           name: playerName(),
           id: playerId(),
