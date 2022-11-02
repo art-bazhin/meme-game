@@ -7,6 +7,7 @@ import { PlayerController } from '../../../model/player-controller';
 import { roomId } from '../../../model/routing';
 import { button } from '../button/button';
 import { PlayerLogin } from '../player-login/player-login';
+import { LoadingScreen } from '../loading-screen/loading-screen';
 
 export const PlayerView = component(() => {
   const playerId = writable('');
@@ -33,7 +34,7 @@ export const PlayerView = component(() => {
 
       switch (ctrl.stage()) {
         case GameStage.Lobby:
-          return null;
+          return LoadingScreen(() => 'Ожидаем начала игры');
 
         case GameStage.Question:
           return QuestionTemp(ctrl);
