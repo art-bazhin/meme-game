@@ -25,7 +25,7 @@ export const HostLobby = component((controller: HostController) => {
                 controller.pending() ? 'Начинаем...' : 'Начать Игру',
               disabled: () =>
                 controller.gameStartBlocked() || controller.pending(),
-              onclick: () => controller.startGame(),
+              onСlick: () => controller.startGame(),
             });
           });
         });

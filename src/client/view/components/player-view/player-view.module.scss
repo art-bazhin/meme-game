@@ -1,16 +1,8 @@
 @import 'src/client/view/style/constants.scss';
 
 .container {
-  display: block;
-  margin: 0 auto;
-  width: 100%;
+  padding: 16px;
   height: 100%;
-
-  @media ($wide) {
-    padding: 6vh;
-    max-width: 150vh;
-  }
-
   display: flex;
   flex-direction: column;
 }

@@ -5,7 +5,8 @@ import { component, h, templateFn } from 'spred-dom';
 interface ButtonProps {
   text: () => string;
   disabled?: () => boolean;
-  onclick?: (e: MouseEvent) => any;
+  onСlick?: (e: MouseEvent) => any;
+  className?: () => string;
 }
 
 interface ButtonLinkProps extends ButtonProps {
@@ -13,7 +14,7 @@ interface ButtonLinkProps extends ButtonProps {
 }
 
 export const ButtonLink = component(
-  ({ href, text, disabled, onclick }: ButtonLinkProps) => {
+  ({ href, text, disabled, onСlick: onclick }: ButtonLinkProps) => {
     return h('a', {
       onclick,
       href,
@@ -28,14 +29,19 @@ export const ButtonLink = component(
 
 export const buttonLink = templateFn(ButtonLink);
 
-export const Button = component(({ text, disabled, onclick }: ButtonProps) => {
+export const Button = component((props: ButtonProps) => {
+  const { text, disabled, onСlick, className } = props;
+
   return h('button', {
-    onclick,
+    onclick: onСlick,
     text,
-    class: {
-      [css.button]: true,
-      [css.disabled]: disabled,
-    },
+    class: [
+      {
+        [css.button]: true,
+        [css.disabled]: disabled,
+      },
+      className,
+    ],
   });
 });
 

@@ -1,57 +1,59 @@
-import { nanoid } from 'nanoid';
-import { computed } from 'spred';
+import * as css from './player-view.module.scss';
+
+import { batch, computed, writable } from 'spred';
 import { component, h, node } from 'spred-dom';
 import { GameStage } from '../../../../common/game-stage';
-import { withLocalStorage } from '../../../lib/with-local-storage';
 import { PlayerController } from '../../../model/player-controller';
 import { roomId } from '../../../model/routing';
 import { button } from '../button/button';
+import { PlayerLogin } from '../player-login/player-login';
 
 export const PlayerView = component(() => {
-  const playerId = withLocalStorage('PLAYER_ID', nanoid);
-  const playerName = withLocalStorage(
-    'PLAYER_NAME',
-    () => 'player_' + nanoid().substring(0, 4)
-  );
+  const playerId = writable('');
+  const playerName = writable('');
+  const controller = computed(() => {
+    if (!playerId() || !playerName() || !roomId()) return null;
+    return new PlayerController(roomId(), playerId(), playerName());
+  });
 
-  const controllerSignal = computed(
-    () => new PlayerController(roomId(), playerId(), playerName())
-  );
-  const state = computed(() => controllerSignal().state());
-
-  (window as any).controller = controllerSignal();
-
-  return h('div', () => {
-    const controller = controllerSignal();
-
+  return h('div', { class: css.container }, () => {
     node(() => {
-      switch (controller.stage()) {
+      const ctrl = controller();
+
+      if (!ctrl) {
+        return PlayerLogin({
+          onLogin: ({ name, id }) => {
+            batch(() => {
+              playerId(id);
+              playerName(name);
+            });
+          },
+        });
+      }
+
+      switch (ctrl.stage()) {
         case GameStage.Lobby:
           return null;
 
         case GameStage.Question:
-          return QuestionTemp(controller);
+          return QuestionTemp(ctrl);
 
         case GameStage.Vote:
-          const state = controller.state();
-          if (
-            controller.player().id === state.answers[state.answerIndex].playerId
-          )
+          const state = ctrl.state();
+          if (ctrl.player().id === state.answers[state.answerIndex].playerId)
             return null;
-          return VoteTemp(controller);
+          return VoteTemp(ctrl);
 
         case GameStage.Results:
-          return ResultsTemp(controller);
+          return ResultsTemp(ctrl);
       }
-
-      return null;
     });
   });
 });
 
 const ResultsTemp = component((controller: PlayerController) => {
   return h('div', () => {
-    button({ text: () => 'Ready', onclick: () => controller.ready() });
+    button({ text: () => 'Ready', onСlick: () => controller.ready() });
   });
 });
 
@@ -59,27 +61,27 @@ const QuestionTemp = component((controller: PlayerController) => {
   return h('div', () => {
     button({
       text: () => controller.player().cards[0],
-      onclick: () => controller.answer(controller.player().cards[0]),
+      onСlick: () => controller.answer(controller.player().cards[0]),
     });
 
     button({
       text: () => controller.player().cards[1],
-      onclick: () => controller.answer(controller.player().cards[1]),
+      onСlick: () => controller.answer(controller.player().cards[1]),
     });
 
     button({
       text: () => controller.player().cards[2],
-      onclick: () => controller.answer(controller.player().cards[2]),
+      onСlick: () => controller.answer(controller.player().cards[2]),
     });
 
     button({
       text: () => controller.player().cards[3],
-      onclick: () => controller.answer(controller.player().cards[3]),
+      onСlick: () => controller.answer(controller.player().cards[3]),
     });
 
     button({
       text: () => controller.player().cards[4],
-      onclick: () => controller.answer(controller.player().cards[4]),
+      onСlick: () => controller.answer(controller.player().cards[4]),
     });
   });
 });
@@ -88,17 +90,17 @@ const VoteTemp = component((controller: PlayerController) => {
   return h('div', () => {
     button({
       text: () => '0',
-      onclick: () => controller.vote(0),
+      onСlick: () => controller.vote(0),
     });
 
     button({
       text: () => '1',
-      onclick: () => controller.vote(1),
+      onСlick: () => controller.vote(1),
     });
 
     button({
       text: () => '2',
-      onclick: () => controller.vote(2),
+      onСlick: () => controller.vote(2),
     });
   });
 });

@@ -1,0 +1,12 @@
+@import 'src/client/view/style/constants.scss';
+
+.login {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.button {
+  margin-top: 16px;
+}
