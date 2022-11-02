@@ -9,10 +9,10 @@ import { LoadingScreen } from '../loading-screen/loading-screen';
 import { GameStage } from '../../../../common/game-stage';
 import { HostQuestion } from '../host-question/host-question';
 import { HostVote } from '../host-vote/host-vote';
+import { HostResults } from '../host-results/host-results';
 
 export const HostView = component(() => {
   const controllerSignal = computed(() => new HostController(roomId()));
-  const state = computed(() => controllerSignal().state());
 
   return h('div', { class: css.container }, () => {
     node(() => {
@@ -31,9 +31,10 @@ export const HostView = component(() => {
 
         case GameStage.Vote:
           return HostVote(controller);
-      }
 
-      return LoadingScreen();
+        case GameStage.Results:
+          return HostResults(controller);
+      }
     });
   });
 });

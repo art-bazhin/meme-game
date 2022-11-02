@@ -1,0 +1,20 @@
+@import 'src/client/view/style/constants.scss';
+
+.resultsTable {
+  border-collapse: collapse;
+
+  font-size: 4vh;
+
+  tr:nth-child(2n - 1) {
+    background: $c-background-dark;
+  }
+
+  td {
+    padding: 1vh 3vh;
+    text-align: left;
+
+    &:last-child {
+      text-align: right;
+    }
+  }
+}

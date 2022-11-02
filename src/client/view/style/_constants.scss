@@ -1,6 +1,7 @@
 /* COLORS */
 
 $c-background: #f3f3f3;
+$c-background-dark: darken($c-background, 10%);
 $c-foreground: #2d2d2d;
 $c-foreground-light: lighten($c-foreground, 50%);
 $c-primary: #605096;
