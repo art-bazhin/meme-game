@@ -8,6 +8,7 @@ import { roomId } from '../../../model/routing';
 import { button } from '../button/button';
 import { PlayerLogin } from '../player-login/player-login';
 import { LoadingScreen } from '../loading-screen/loading-screen';
+import { PlayerQuestion } from '../player-question/player-question';
 
 export const PlayerView = component(() => {
   const playerId = writable('');
@@ -37,7 +38,7 @@ export const PlayerView = component(() => {
           return LoadingScreen(() => 'Ожидаем начала игры');
 
         case GameStage.Question:
-          return QuestionTemp(ctrl);
+          return PlayerQuestion(ctrl);
 
         case GameStage.Vote:
           const state = ctrl.state();

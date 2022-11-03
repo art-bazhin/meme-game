@@ -1,0 +1,51 @@
+@import 'src/client/view/style/constants.scss';
+
+.container {
+  margin: 0 -16px;
+  height: 100%;
+  overflow: hidden;
+}
+
+.pictures {
+  width: 300vw;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  position: relative;
+  left: -100vw;
+  transform: translateX(0);
+}
+
+.picture {
+  width: 100vw;
+  height: 100%;
+  background-position: center center;
+  background-size: contain;
+  background-repeat: no-repeat;
+
+  &.selected .overlay {
+    opacity: 1;
+  }
+}
+
+.overlay {
+  position: relative;
+  background-color: transparentize($c-background, 0.2);
+  height: 100%;
+  transition: opacity 0.2s ease-in-out;
+  opacity: 0;
+
+  &:after {
+    content: '';
+    box-sizing: border-box;
+    display: block;
+    width: 128px;
+    height: 80px;
+    position: absolute;
+    border-left: 32px solid $c-primary;
+    border-bottom: 32px solid $c-primary;
+    transform: rotate(-45deg) translateX(-25%) translateY(-50%);
+    left: 50%;
+    top: 43%;
+  }
+}

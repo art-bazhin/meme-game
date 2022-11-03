@@ -9,6 +9,11 @@ export class PlayerController extends GameController {
   private readonly players = this._state.select('players');
 
   public readonly player = computed(() => this.state().players[this.playerId]);
+  public readonly cards = computed(() => this.player().cards);
+  public readonly selectedCard = computed(() => {
+    const answer = this.answers().find((a) => a.playerId === this.player().id);
+    return answer ? answer.card : '';
+  });
 
   constructor(roomId: string, playerId: string, playerName: string) {
     super(ClientType.Player, roomId, playerId, playerName);

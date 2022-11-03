@@ -1,5 +1,4 @@
 import { Server, Socket } from 'socket.io';
-import { on } from 'spred';
 import { Action } from '../common/action.js';
 import { ClientType } from '../common/client-type.js';
 import { RoomError } from '../common/room-error.js';

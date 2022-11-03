@@ -9,9 +9,9 @@ import { RoomState } from '../common/room-state';
 import { CARDS } from './cards.js';
 import { Caption, CAPTIONS } from './captions.js';
 import { shuffleCopy } from './utils.js';
+import { CARDS_PER_PLAYER } from '../common/constants.js';
 
 const ROOM_EXPIRED_TIME = 30 * 60 * 1000;
-const CARDS_PER_PLAYER = 5;
 const WAIT_FOR_OFFLINE_TIME = 30 * 1000;
 const MIN_PLAYERS = 2;
 
