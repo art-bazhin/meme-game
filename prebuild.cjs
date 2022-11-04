@@ -4,5 +4,5 @@ const handler = (e) => {
   if (e) console.error(e);
 };
 
-rmSync('./dist', { recursive: true }, handler);
+rmSync('./dist', { recursive: true, force: true }, handler);
 cpSync('./src/assets/', './dist/static/', { recursive: true }, handler);
