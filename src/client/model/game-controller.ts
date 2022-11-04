@@ -26,7 +26,7 @@ export class GameController {
   public readonly stage = computed(() => this.state().stage);
   public readonly error = computed(() => this.state().error);
 
-  private readonly votedAnswer = computed(() => {
+  public readonly votedAnswer = computed(() => {
     const state = this.state();
     return state.answers[state.answerIndex];
   });

@@ -2,15 +2,24 @@
 
 .resultsTable {
   border-collapse: collapse;
+  width: 100%;
+  font-size: 20px;
 
-  font-size: 4vh;
+  @media ($wide) {
+    font-size: 4vh;
+  }
 
   tr:nth-child(2n - 1) {
     background: $c-background-dark;
   }
 
   td {
-    padding: 1vh 3vh;
+    padding: 8px 16px;
+
+    @media ($wide) {
+      padding: 1vh 3vh;
+    }
+
     text-align: left;
 
     &:last-child {

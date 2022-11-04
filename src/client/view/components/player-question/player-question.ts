@@ -111,6 +111,9 @@ export const PlayerQuestion = component((controller: PlayerController) => {
       ontouchmove: move,
       ontouchend: end,
       ontouchcancel: end,
+      ondblclick: () => {
+        controller.answer(currentCard());
+      },
     },
     () => {
       h(

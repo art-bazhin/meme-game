@@ -9,13 +9,28 @@ import { button } from '../button/button';
 import { PlayerLogin } from '../player-login/player-login';
 import { LoadingScreen } from '../loading-screen/loading-screen';
 import { PlayerQuestion } from '../player-question/player-question';
+import { PlayerVote } from '../player-vote/player-vote';
+import { PlayerResults } from '../player-results/player-results';
 
 export const PlayerView = component(() => {
   const playerId = writable('');
   const playerName = writable('');
+
   const controller = computed(() => {
     if (!playerId() || !playerName() || !roomId()) return null;
     return new PlayerController(roomId(), playerId(), playerName());
+  });
+
+  const showVoteScreen = computed(() => {
+    const ctrl = controller();
+    if (!ctrl) return false;
+    return ctrl.player().id !== ctrl.votedAnswer().playerId;
+  });
+
+  const playerIsReady = computed(() => {
+    const ctrl = controller();
+    if (!ctrl) return false;
+    return ctrl.player().done;
   });
 
   return h('div', { class: css.container }, () => {
@@ -33,6 +48,10 @@ export const PlayerView = component(() => {
         });
       }
 
+      if (ctrl.loading()) {
+        return LoadingScreen();
+      }
+
       switch (ctrl.stage()) {
         case GameStage.Lobby:
           return LoadingScreen(() => 'Ожидаем начала игры');
@@ -41,68 +60,13 @@ export const PlayerView = component(() => {
           return PlayerQuestion(ctrl);
 
         case GameStage.Vote:
-          const state = ctrl.state();
-          if (ctrl.player().id === state.answers[state.answerIndex].playerId)
-            return null;
-          return VoteTemp(ctrl);
+          if (showVoteScreen()) return PlayerVote(ctrl);
+          return LoadingScreen(() => 'Ожидаем других игроков');
 
         case GameStage.Results:
-          return ResultsTemp(ctrl);
+          if (!playerIsReady()) return PlayerResults(ctrl);
+          return LoadingScreen(() => 'Ожидаем других игроков');
       }
-    });
-  });
-});
-
-const ResultsTemp = component((controller: PlayerController) => {
-  return h('div', () => {
-    button({ text: () => 'Ready', onСlick: () => controller.ready() });
-  });
-});
-
-const QuestionTemp = component((controller: PlayerController) => {
-  return h('div', () => {
-    button({
-      text: () => controller.player().cards[0],
-      onСlick: () => controller.answer(controller.player().cards[0]),
-    });
-
-    button({
-      text: () => controller.player().cards[1],
-      onСlick: () => controller.answer(controller.player().cards[1]),
-    });
-
-    button({
-      text: () => controller.player().cards[2],
-      onСlick: () => controller.answer(controller.player().cards[2]),
-    });
-
-    button({
-      text: () => controller.player().cards[3],
-      onСlick: () => controller.answer(controller.player().cards[3]),
-    });
-
-    button({
-      text: () => controller.player().cards[4],
-      onСlick: () => controller.answer(controller.player().cards[4]),
-    });
-  });
-});
-
-const VoteTemp = component((controller: PlayerController) => {
-  return h('div', () => {
-    button({
-      text: () => '0',
-      onСlick: () => controller.vote(0),
-    });
-
-    button({
-      text: () => '1',
-      onСlick: () => controller.vote(1),
-    });
-
-    button({
-      text: () => '2',
-      onСlick: () => controller.vote(2),
     });
   });
 });

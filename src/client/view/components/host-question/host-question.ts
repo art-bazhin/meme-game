@@ -11,7 +11,7 @@ export const HostQuestion = component((controller: HostController) => {
     h('div', { class: css.captionWrap }, () => {
       h('p', {
         class: css.caption,
-        text: () => 'Когда пишешь классную игру для себя и друзей',
+        text: controller.caption,
       });
     });
 

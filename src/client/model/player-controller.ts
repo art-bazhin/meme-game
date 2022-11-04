@@ -14,6 +14,9 @@ export class PlayerController extends GameController {
     const answer = this.answers().find((a) => a.playerId === this.player().id);
     return answer ? answer.card : '';
   });
+  public readonly playerVote = computed(() => {
+    return this.votes().find((vote) => vote.playerId === this.playerId) || null;
+  });
 
   constructor(roomId: string, playerId: string, playerName: string) {
     super(ClientType.Player, roomId, playerId, playerName);

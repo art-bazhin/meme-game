@@ -1,0 +1,31 @@
+@import 'src/client/view/style/constants.scss';
+
+.container {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  height: 100%;
+}
+
+.buttons {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.button {
+  background: none;
+  padding: 0;
+  width: 88px;
+  height: 88px;
+  border: 8px solid $c-background;
+  font-size: 68px;
+  line-height: 68px;
+  text-align: center;
+  border-radius: 50%;
+  transition: border 0.1s ease-in-out;
+
+  &.selected {
+    border-color: $c-primary;
+  }
+}
