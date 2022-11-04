@@ -92,6 +92,7 @@ export class Room {
 
   constructor(private io: Server, private id: string) {
     this.initExpiredTimeout();
+    console.log('Created Room ' + id);
   }
 
   public connect(playerId: string, name: string) {
@@ -291,6 +292,7 @@ export class Room {
     clearTimeout(this.expiredTimeout);
 
     this.expiredTimeout = setTimeout(() => {
+      console.log('Expired Room ' + this.id);
       this.emitError(RoomError.Expired);
       this.close();
     }, ROOM_EXPIRED_TIME);
