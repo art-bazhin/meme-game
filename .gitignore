@@ -6,3 +6,4 @@ perf
 coverage
 .vscode
 .parcel-cache
+.dist
