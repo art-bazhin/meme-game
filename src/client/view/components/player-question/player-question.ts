@@ -19,7 +19,7 @@ const Picture = component((props: { id: string; selected: () => boolean }) => {
         [css.selected]: props.selected,
       },
       attrs: {
-        style: () => `background-image: url("/img/${props.id}.jpg")`,
+        style: () => `background-image: url("./img/${props.id}.jpg")`,
       },
     },
     () => h('div', { class: css.overlay })

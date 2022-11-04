@@ -13,7 +13,7 @@ export const HostVote = component((controller: HostController) => {
         class: css.img,
         attrs: {
           style: () =>
-            `background-image: url("/img/${controller.votedCard()}.jpg")`,
+            `background-image: url("./img/${controller.votedCard()}.jpg")`,
         },
       });
 
