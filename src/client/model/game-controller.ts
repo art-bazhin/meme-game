@@ -7,7 +7,9 @@ import { getPlayLink } from './routing';
 
 const isLocalHost = location.origin === 'http://localhost:1234';
 
-const WS_URL = isLocalHost ? 'ws://localhost:3000' : '';
+const WS_URL = isLocalHost
+  ? 'ws://localhost:3000'
+  : 'wss://meme-game-server.onrender.com:3000';
 
 export class GameController {
   private socket: Socket;

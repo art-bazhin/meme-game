@@ -6,7 +6,7 @@ import { Room } from './room.js';
 
 const io = new Server({
   cors: {
-    origin: 'http://localhost:1234',
+    origin: ['http://localhost:1234', 'https://meme-game.onrender.com'],
   },
 });
 
