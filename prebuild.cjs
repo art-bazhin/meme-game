@@ -1,8 +1,9 @@
-const { copyFileSync, rmSync } = require('fs');
+const { rmSync } = require('fs');
+const { cpSync } = require('fs-extra');
 
 const handler = (e) => {
   if (e) console.error(e);
 };
 
 rmSync('./dist', { recursive: true, force: true }, handler);
-copyFileSync('./src/assets/', './dist/static/', { recursive: true }, handler);
+cpSync('./src/assets/', './dist/static/', { recursive: true }, handler);

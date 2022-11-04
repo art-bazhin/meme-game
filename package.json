@@ -8,7 +8,7 @@
     "prebuild": "node prebuild.cjs",
     "build:client": "parcel build src/client/index.html --dist-dir ./dist/static",
     "build:server": "npx tsc src/server/index.ts --outDir ./dist --target ES2020 --moduleResolution node --strict",
-    "build": "npm run prebuild & npm run build:server & npm run build:client",
+    "build": "npm run prebuild && npm run build:server && npm run build:client",
     "dev:client": "parcel src/client/index.html --dist-dir ./dist/static",
     "dev:server": "nodemon",
     "serve": "node dist/server"
@@ -20,6 +20,7 @@
     "@parcel/transformer-sass": "^2.7.0",
     "@types/qrcode": "^1.5.0",
     "buffer": "^6.0.3",
+    "fs-extra": "^10.1.0",
     "nodemon": "^2.0.19",
     "parcel": "^2.7.0",
     "prettier": "^2.7.1",
