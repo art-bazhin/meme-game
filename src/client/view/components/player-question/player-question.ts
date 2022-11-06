@@ -6,7 +6,7 @@ import { batch, computed, writable, WritableSignal } from 'spred';
 import { CARDS_PER_PLAYER } from '../../../../common/constants';
 import { withLocalStorage } from '../../../lib/with-local-storage';
 
-const DOUBLETAP_DURATION = 500;
+const DOUBLETAP_DURATION = 300;
 const SWIPE_DURATION = 200;
 const MIN_OFFSET = 30;
 
