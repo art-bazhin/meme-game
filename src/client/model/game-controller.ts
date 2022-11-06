@@ -43,8 +43,9 @@ export class GameController {
 
   public readonly playersList = computed(() => {
     const players = this.state().players;
-    const ids = Object.keys(players);
+    if (!players) return [];
 
+    const ids = Object.keys(players);
     return ids.map((id) => players[id]);
   });
 

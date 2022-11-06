@@ -10,11 +10,13 @@ import { GameStage } from '../../../../common/game-stage';
 import { HostQuestion } from '../host-question/host-question';
 import { HostVote } from '../host-vote/host-vote';
 import { HostResults } from '../host-results/host-results';
+import { Preload } from '../preload/preload';
 
 export const HostView = component(() => {
   const controllerSignal = computed(() => new HostController(roomId()));
 
   return h('div', { class: css.container }, () => {
+    node(() => Preload(controllerSignal()));
     node(() => {
       const controller = controllerSignal();
 
