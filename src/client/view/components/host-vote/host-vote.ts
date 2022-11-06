@@ -19,7 +19,7 @@ export const HostVote = component((controller: HostController) => {
 
       h('p', {
         class: css.caption,
-        text: 'Когда пишешь классную игру для себя и друзей',
+        text: controller.caption,
       });
     });
 
