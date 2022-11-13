@@ -11,5 +11,5 @@ $c-secondary-dark: darken($c-secondary, 8%);
 
 /* MEDIA */
 
-$wide: '(min-width: 768px)';
-$mobile: '(max-width: 767px)';
+$wide: 'min-width: 768px';
+$mobile: 'max-width: 767px';
